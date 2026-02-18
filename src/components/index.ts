@@ -15,3 +15,4 @@ export { ScopeSelector } from './ScopeSelector';
 export { SubscriptionCard } from './SubscriptionCard';
 export { FloatingAIButton } from './FloatingAIButton';
 export { FinancialAwarenessCard } from './FinancialAwarenessCard';
+export { FinancialAwarenessHeroCard } from './FinancialAwarenessHeroCard';

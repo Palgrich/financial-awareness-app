@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppHeader, AppHeaderDark, StatTile, LoadingSkeleton, DonutChart, ScopeSelector, FloatingAIButton, FinancialAwarenessCard } from '../components';
+import { AppHeader, AppHeaderDark, StatTile, LoadingSkeleton, DonutChart, ScopeSelector, FloatingAIButton, FinancialAwarenessHeroCard } from '../components';
 import { useStore } from '../state/store';
 import { formatCurrency } from '../utils/format';
 import type { DashboardStackParamList } from '../navigation/types';
@@ -14,6 +14,7 @@ import {
   type ChartPeriod,
 } from '../domain/spending';
 import { getSubscriptionLoadPercent } from '../domain/subscriptions';
+import { calculateFinancialClarity, getClarityLabel } from '../awareness/score';
 
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
 
@@ -96,6 +97,20 @@ export function DashboardScreen() {
     () => scopedSubscriptions.filter((s) => s.status === 'active' || s.status === 'trial'),
     [scopedSubscriptions]
   );
+  const clarityResult = useMemo(
+    () =>
+      calculateFinancialClarity({
+        institutions,
+        accounts,
+        visibleAccountIds,
+        subscriptions,
+        visibleTransactions,
+        monthlyIncome,
+      }),
+    [institutions, accounts, visibleAccountIds, subscriptions, visibleTransactions, monthlyIncome]
+  );
+  const liquidityMultiple =
+    data.expenses > 0 ? availableCash / data.expenses : (availableCash > 0 ? null : null);
   const recentTransactions = useMemo(() => {
     return [...visibleTransactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -129,13 +144,22 @@ export function DashboardScreen() {
   const mutedColor = dark ? '#94a3b8' : '#64748b';
 
   const headerRight = (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('Menu')}
-      style={styles.headerIcon}
-      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-    >
-      <Text style={styles.headerIconText}>☰</Text>
-    </TouchableOpacity>
+    <View style={styles.headerRight}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Notifications')}
+        style={styles.headerIcon}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Text style={styles.headerIconText}>🔔</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Menu')}
+        style={styles.headerIcon}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Text style={styles.headerIconText}>☰</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const cardShadow = Platform.select({
@@ -161,47 +185,54 @@ export function DashboardScreen() {
           <ScopeSelector dark={dark} />
         </View>
         <Text style={[styles.includedLabel, { color: mutedColor }]}>
-          {scopeLabel}
+          Included: {scopeLabel}
         </Text>
 
+        <View style={[styles.cardBase, styles.heroCard, { backgroundColor: cardBg }, cardShadow]}>
+          <FinancialAwarenessHeroCard
+            score={clarityResult.score}
+            label={getClarityLabel(clarityResult.score)}
+            liquidityMultiple={liquidityMultiple}
+            subscriptionPercent={subscriptionLoadPercent}
+            netThisMonth={data.net}
+            onDetailsPress={() => navigation.navigate('Notifications')}
+            dark={dark}
+          />
+        </View>
+
         <View style={styles.statsRow}>
-          <View style={[styles.statTileWrap, styles.cardBase, { backgroundColor: cardBg }, cardShadow]}>
+          <View style={[styles.statTileWrap, styles.cardBase, styles.statTileCard, { backgroundColor: cardBg }, cardShadow]}>
             <StatTile
               dark={dark}
               label="Available cash"
               value={cashAccounts.length === 0 ? '—' : formatCurrency(availableCash)}
               subValue={cashAccounts.length === 0 ? 'No accounts' : `${cashAccounts.length} account${cashAccounts.length !== 1 ? 's' : ''}`}
               extraSubValue={cashAccounts.length > 0 ? netLine : undefined}
-              valueSize="large"
               subValueMuted
               noBorder
             />
           </View>
-          <View style={[styles.statTileWrap, styles.cardBase, { backgroundColor: cardBg }, cardShadow]}>
+          <View style={[styles.statTileWrap, styles.cardBase, styles.statTileCard, { backgroundColor: cardBg }, cardShadow]}>
             <StatTile
               dark={dark}
               label="Expenses (this month)"
               value={formatCurrency(data.expenses)}
-              valueSize="large"
               subValueMuted
               noBorder
             />
           </View>
-        </View>
-
-        <View style={[styles.cardBase, styles.awarenessCard, { backgroundColor: cardBg }, cardShadow]}>
-          <FinancialAwarenessCard
-            availableCash={availableCash}
-            monthlySpend={data.expenses}
-            subscriptionPercent={subscriptionLoadPercent}
-            netThisMonth={data.net}
-            dark={dark}
-          />
         </View>
 
         <View style={[styles.cardBase, styles.donutCard, { backgroundColor: cardBg }, cardShadow]}>
           <View style={styles.periodRow}>
             <Text style={[styles.chartTitle, { color: textColor }]}>Spending by category</Text>
+            <View style={styles.periodRowRight}>
+              <TouchableOpacity onPress={() => navigation.navigate('TransactionsHome')} hitSlop={8}>
+                <Text style={[styles.viewAllLink, { color: dark ? '#60a5fa' : '#1d4ed8' }]}>Transactions →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.periodToggleWrap}>
             <View style={styles.periodToggle}>
               <TouchableOpacity
                 style={[styles.periodBtn, chartPeriod === 'this_month' && styles.periodBtnActive]}
@@ -240,6 +271,24 @@ export function DashboardScreen() {
             showLegend={true}
             legendMaxItems={5}
           />
+        </View>
+
+        <View style={[styles.cardBase, styles.subCard, { backgroundColor: cardBg }, cardShadow]}>
+          <Text style={[styles.subTitle, { color: textColor }]}>Subscriptions</Text>
+          <Text style={[styles.subMonthly, { color: textColor }]}>
+            {formatCurrency(activeSubsTotal)} / month
+          </Text>
+          <Text style={[styles.subActive, { color: mutedColor }]}>
+            {activeSubs.length} active
+          </Text>
+          <View style={styles.subViewAllRow}>
+            <TouchableOpacity onPress={() => navigation.navigate('SubscriptionsHome')} hitSlop={8}>
+              <Text style={[styles.viewAllLink, { color: dark ? '#60a5fa' : '#1d4ed8' }]}>View all →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.cardBase, styles.recentCard, { backgroundColor: cardBg }, cardShadow]}>
           <View style={styles.recentHeader}>
             <Text style={[styles.recentTitle, { color: textColor }]}>Recent transactions</Text>
             <TouchableOpacity onPress={() => navigation.navigate('TransactionsHome')} hitSlop={8}>
@@ -275,21 +324,6 @@ export function DashboardScreen() {
           )}
         </View>
 
-        <View style={[styles.cardBase, styles.subCard, { backgroundColor: cardBg }, cardShadow]}>
-          <Text style={[styles.subTitle, { color: textColor }]}>Subscriptions</Text>
-          <Text style={[styles.subMonthly, { color: textColor }]}>
-            {formatCurrency(activeSubsTotal)} / month
-          </Text>
-          <Text style={[styles.subActive, { color: mutedColor }]}>
-            {activeSubs.length} active
-          </Text>
-          <View style={styles.subViewAllRow}>
-            <TouchableOpacity onPress={() => navigation.navigate('SubscriptionsHome')} hitSlop={8}>
-              <Text style={[styles.viewAllLink, { color: dark ? '#60a5fa' : '#1d4ed8' }]}>View all →</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         <View style={{ height: 32 }} />
       </ScrollView>
       <FloatingAIButton onPress={() => navigation.navigate('CoachHome')} dark={dark} />
@@ -305,14 +339,15 @@ const styles = StyleSheet.create({
   includedLabel: { fontSize: 12, paddingHorizontal: 16, marginBottom: 16 },
   statsRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 12 },
   statTileWrap: { flex: 1, minWidth: 0 },
+  statTileCard: { padding: 14 },
   cardBase: {
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
   },
-  awarenessCard: {
+  heroCard: {
     marginHorizontal: 16,
-    marginTop: 20,
+    marginTop: 16,
     padding: 18,
   },
   donutCard: {
@@ -320,17 +355,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 18,
   },
-  periodRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  periodRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  periodRowRight: {},
+  periodToggleWrap: { marginBottom: 12 },
   periodToggle: { flexDirection: 'row', gap: 8 },
   periodBtn: { paddingVertical: 4 },
   periodBtnActive: {},
   periodText: { fontSize: 13 },
   chartTitle: { fontSize: 16, fontWeight: '600' },
+  recentCard: {
+    marginHorizontal: 16,
+    marginTop: 20,
+    padding: 18,
+  },
   recentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
     marginBottom: 10,
   },
   recentTitle: { fontSize: 14, fontWeight: '600' },
@@ -350,8 +391,9 @@ const styles = StyleSheet.create({
   amountExpense: { color: '#dc2626' },
   recentEmpty: { fontSize: 14, paddingVertical: 16 },
   viewAllBtn: { marginTop: 14 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   headerIcon: { paddingHorizontal: 8 },
-  headerIconText: { fontSize: 22, fontWeight: '300' },
+  headerIconText: { fontSize: 20 },
   subCard: {
     marginHorizontal: 16,
     marginTop: 20,
