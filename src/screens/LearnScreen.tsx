@@ -1,130 +1,260 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { Bell, Menu } from 'lucide-react-native';
+import { AppHeader } from '../components';
+import { TodaysMissionCard } from '../components/learn';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppHeader, AppHeaderDark, Card, SectionTitle, ListRow } from '../components';
-import { useStore } from '../state/store';
 import type { LearnStackParamList } from '../navigation/types';
-import type { LessonProgress } from '../state/store';
+import { learnUserData, type LearnUserData as LearnUserDataType } from '../data/learnUserData';
+import { getQuestProgress, getStreak } from '../data/learnQuestStorage';
+import type { QuestProgressState } from '../data/learnQuestStorage';
+
+const LEARN_QUESTS = [
+  {
+    title: 'Subscription Cleanse',
+    icon: '✂️',
+    iconBg: '#EDE9FE',
+    tag: '🔴 Urgent for you',
+    tagBg: '#FEE2E2',
+    tagColor: '#DC2626',
+    steps: '0/4 steps',
+    subtitle: 'Save ~$86/month',
+  },
+  {
+    title: 'Credit Card Basics',
+    icon: '💳',
+    iconBg: '#DBEAFE',
+    tag: '🔴 Urgent for you',
+    tagBg: '#FEE2E2',
+    tagColor: '#DC2626',
+    steps: '0/5 steps',
+    subtitle: 'Protect your credit score',
+  },
+  {
+    title: 'Emergency Fund 101',
+    icon: '🏦',
+    iconBg: '#D1FAE5',
+    tag: '⚪ Start when ready',
+    tagBg: '#F3F4F6',
+    tagColor: '#6B7280',
+    steps: '0/3 steps',
+    subtitle: 'Build a safety net',
+  },
+] as const;
+
+const QUICK_WINS_INLINE = [
+  { id: 'creditScore', emoji: '📊', title: 'What is a credit score?', type: 'quiz' as const },
+  { id: 'thirtyRule', emoji: '💳', title: '30% rule explained', type: 'quiz' as const },
+  { id: 'paymentReminder', emoji: '🔔', title: 'Set a payment reminder', type: 'guide' as const },
+  { id: 'bankStatement', emoji: '🧾', title: 'Read your bank statement', type: 'quiz' as const },
+];
+
+const BACKGROUND = '#F0F2F7';
+
+const MONEY_FACTS = [
+  'People who track their spending save an average of $200 more per month than those who don\'t.',
+  'Paying just $10 extra on a $500 credit card balance saves $150 in interest.',
+  'The average American has 4.5 subscriptions they don\'t actively use.',
+  'Setting up autopay eliminates late fees for 90% of people who try it.',
+  'People with 750+ credit scores pay $1,500 less on car loans on average.',
+  'Having even $500 in emergency savings reduces financial stress significantly.',
+  'Cancelling one unused $15/month subscription saves $180/year.',
+];
+
+const moneyFactStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#FDE68A',
+    marginBottom: 12,
+  },
+  text: {
+    fontSize: 14,
+    color: '#0F172A',
+    lineHeight: 22,
+  },
+});
+
+function MoneyFactCard() {
+  const dayIndex = new Date().getDay();
+  const fact = MONEY_FACTS[dayIndex] ?? MONEY_FACTS[0];
+  return (
+    <View style={moneyFactStyles.card}>
+      <Text style={moneyFactStyles.title}>💡 Did you know?</Text>
+      <View style={moneyFactStyles.divider} />
+      <Text style={moneyFactStyles.text}>{fact}</Text>
+    </View>
+  );
+}
 
 type Nav = NativeStackNavigationProp<LearnStackParamList, 'LearnHome'>;
 
-const PATHS = [
-  { id: 'fees', title: 'Avoid fees', lessonIds: ['l4', 'l5', 'l6'] },
-  { id: 'savings', title: 'Build savings', lessonIds: ['l1', 'l2', 'l3', 'l12'] },
-  { id: 'cds', title: 'Understand CDs', lessonIds: ['l7', 'l8', 'l9'] },
-  { id: 'subs', title: 'Master subscriptions', lessonIds: ['l10'] },
-];
-
-function progressLabel(p: LessonProgress): string {
-  if (p === 'completed') return 'Completed';
-  if (p === 'in_progress') return 'In progress';
-  return 'Not started';
-}
-
 export function LearnScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<Nav>();
-  const lessons = useStore((s) => s.lessons);
-  const challenges = useStore((s) => s.challenges);
-  const lessonProgress = useStore((s) => s.lessonProgress);
-  const dark = useStore((s) => s.preferences.darkMode);
-  const streak = useStore((s) => s.streak);
-  const xpTotal = useStore((s) => s.xpTotal);
-  const todayLearnedMinutes = useStore((s) => s.todayLearnedMinutes);
-  const dailyGoalMinutes = useStore((s) => s.dailyGoalMinutes);
+  const [progress, setProgress] = useState<QuestProgressState>({
+    subscriptionCleanse: 0,
+    creditCardBasics: 0,
+    emergencyFund: 0,
+  });
+  const [streak, setStreak] = useState(learnUserData.streak);
 
-  const Header = dark ? AppHeaderDark : AppHeader;
-  const bg = dark ? '#0f172a' : '#f8fafc';
-  const cardBg = dark ? '#1e293b' : '#ffffff';
+  const data: LearnUserDataType = {
+    ...learnUserData,
+    streak,
+    questProgress: progress,
+  };
+
+  const loadStorage = useCallback(async () => {
+    const [p, s] = await Promise.all([getQuestProgress(), getStreak()]);
+    setProgress(p);
+    setStreak(s > 0 ? s : learnUserData.streak);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadStorage();
+    }, [loadStorage])
+  );
+
+  const headerRight = (
+    <View style={styles.headerRight}>
+      <View style={styles.streakPill}>
+        <Text style={styles.streakEmoji}>🔥</Text>
+        <Text style={styles.streakText}>{streak} day streak</Text>
+      </View>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Notifications')}
+        style={styles.headerIcon}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Bell size={22} color="#0F172A" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Menu')}
+        style={styles.headerIcon}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Menu size={22} color="#0F172A" />
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: bg }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Header title="Learn" subtitle="Short lessons on banking and saving" />
-
-        <View style={[styles.gamification, { backgroundColor: dark ? '#1e293b' : '#ffffff', borderColor: dark ? '#475569' : '#e2e8f0' }]}>
-          <View style={styles.gamificationRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeEmoji}>🔥</Text>
-              <Text style={[styles.badgeValue, { color: dark ? '#f1f5f9' : '#0f172a' }]}>{streak}</Text>
-              <Text style={[styles.badgeLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>day streak</Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeEmoji}>⭐</Text>
-              <Text style={[styles.badgeValue, { color: dark ? '#f1f5f9' : '#0f172a' }]}>{xpTotal}</Text>
-              <Text style={[styles.badgeLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>XP</Text>
-            </View>
-          </View>
-          <View style={styles.dailyGoal}>
-            <Text style={[styles.dailyGoalLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>Daily goal</Text>
-            <View style={[styles.dailyGoalBar, { backgroundColor: dark ? '#475569' : '#e2e8f0' }]}>
-              <View
-                style={[
-                  styles.dailyGoalFill,
-                  { width: `${Math.min(100, (todayLearnedMinutes / Math.max(1, dailyGoalMinutes)) * 100)}%` },
-                ]}
-              />
-            </View>
-            <Text style={[styles.dailyGoalText, { color: dark ? '#94a3b8' : '#64748b' }]}>
-              {todayLearnedMinutes} / {dailyGoalMinutes} min
-            </Text>
-          </View>
-        </View>
-
-        <SectionTitle title="Learning paths" dark={dark} />
-        {PATHS.map((path) => (
-          <Card
-            key={path.id}
-            dark={dark}
-            style={styles.pathCard}
-            onPress={() => {
-              const first = path.lessonIds[0];
-              if (first) navigation.navigate('LessonDetail', { lessonId: first });
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={StyleSheet.absoluteFill} collapsable={false}>
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: BACKGROUND }]} />
+      </View>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: tabBarHeight + (insets.bottom || 24) },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <AppHeader
+          title="Learn"
+          subtitle="Your personalized plan"
+          right={headerRight}
+        />
+        <View style={styles.main}>
+          <View style={styles.missionCardWrap}>
+            <TodaysMissionCard
+              data={data}
+            onCancelGuide={(serviceName) => {
+              navigation.navigate('QuestSubscriptionCleanse', {
+                step: 1,
+                serviceName,
+              });
             }}
-          >
-            <Text style={[styles.pathTitle, { color: dark ? '#f1f5f9' : '#0f172a' }]}>{path.title}</Text>
-            <Text style={[styles.pathSub, { color: dark ? '#94a3b8' : '#64748b' }]}>
-              {path.lessonIds.length} lesson{path.lessonIds.length !== 1 ? 's' : ''}
-            </Text>
-          </Card>
-        ))}
-
-        <SectionTitle title="Lessons" dark={dark} />
-        <View style={[styles.listCard, { backgroundColor: cardBg, borderColor: dark ? '#475569' : '#e2e8f0' }]}>
-          {lessons.map((lesson) => {
-            const progress = lessonProgress[lesson.id] ?? 'not_started';
-            return (
-              <ListRow
-                key={lesson.id}
-                dark={dark}
-                title={lesson.title}
-                subtitle={`${lesson.durationMin} min · ${progressLabel(progress)}`}
-                right={
-                  <Text style={[styles.progressChip, progress === 'completed' && styles.progressDone, { color: dark ? '#94a3b8' : '#64748b' }]}>
-                    {progressLabel(progress)}
-                  </Text>
-                }
-                onPress={() => navigation.navigate('LessonDetail', { lessonId: lesson.id })}
-              />
-            );
-          })}
-        </View>
-
-        <SectionTitle title="Challenges" dark={dark} />
-        <View style={[styles.listCard, { backgroundColor: cardBg, borderColor: dark ? '#475569' : '#e2e8f0' }]}>
-          {challenges.map((c) => (
-            <ListRow
-              key={c.id}
-              dark={dark}
-              title={c.title}
-              subtitle={c.status}
-              onPress={() => navigation.navigate('ChallengeDetail', { challengeId: c.id })}
+            onPayNow={() => {
+              // Could navigate to payment flow or show modal
+            }}
+              onIUseIt={() => {}}
             />
-          ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Your Quests</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.questsScrollContent}
+          >
+            {LEARN_QUESTS.map((quest, index) => (
+              <TouchableOpacity
+                key={quest.title}
+                style={[
+                  styles.questCard,
+                  index === 0 && styles.questCardFirst,
+                  index === LEARN_QUESTS.length - 1 && styles.questCardLast,
+                ]}
+                onPress={() => {
+                  if (quest.title === 'Subscription Cleanse') {
+                    navigation.navigate('QuestSubscriptionCleanse', { step: 1 });
+                  }
+                }}
+                activeOpacity={0.9}
+              >
+                <View style={[styles.questIconCircle, { backgroundColor: quest.iconBg }]}>
+                  <Text style={styles.questIconEmoji}>{quest.icon}</Text>
+                </View>
+                <Text style={styles.questCardTitle}>{quest.title}</Text>
+                <View style={[styles.questTag, { backgroundColor: quest.tagBg }]}>
+                  <Text style={[styles.questTagText, { color: quest.tagColor }]}>
+                    {quest.tag}
+                  </Text>
+                </View>
+                <Text style={styles.questSteps}>{quest.steps}</Text>
+                <Text style={styles.questSubtitle}>{quest.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={styles.sectionTitle}>Quick Wins · 60 sec each</Text>
+          <View style={styles.quickWinsGrid}>
+            {QUICK_WINS_INLINE.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.quickWinCard}
+                onPress={() =>
+                  navigation.navigate('QuickWin', { id: item.id, type: item.type })
+                }
+                activeOpacity={0.9}
+              >
+                <Text style={styles.quickWinEmoji}>{item.emoji}</Text>
+                <Text style={styles.quickWinTitle}>{item.title}</Text>
+                <Text style={styles.quickWinArrow}>→</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <MoneyFactCard />
         </View>
-        <View style={{ height: 24 }} />
       </ScrollView>
     </View>
   );
@@ -133,22 +263,127 @@ export function LearnScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { flex: 1 },
-  content: { paddingBottom: 24 },
-  pathCard: { marginHorizontal: 16, marginBottom: 8 },
-  pathTitle: { fontSize: 17, fontWeight: '600' },
-  pathSub: { fontSize: 13, marginTop: 4 },
-  gamification: { marginHorizontal: 16, marginBottom: 16, padding: 16, borderRadius: 12, borderWidth: 1 },
-  gamificationRow: { flexDirection: 'row', gap: 24, marginBottom: 12 },
-  badge: { alignItems: 'center' },
-  badgeEmoji: { fontSize: 24, marginBottom: 4 },
-  badgeValue: { fontSize: 18, fontWeight: '600' },
-  badgeLabel: { fontSize: 12 },
-  dailyGoal: {},
-  dailyGoalLabel: { fontSize: 12, marginBottom: 4 },
-  dailyGoalBar: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  dailyGoalFill: { height: '100%', backgroundColor: '#2563eb', borderRadius: 4 },
-  dailyGoalText: { fontSize: 12, marginTop: 4 },
-  listCard: { marginHorizontal: 16, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0' },
-  progressChip: { fontSize: 12 },
-  progressDone: { color: '#16a34a', fontWeight: '600' },
+  content: { paddingBottom: 0 },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  streakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  streakEmoji: { fontSize: 14 },
+  streakText: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
+  headerIcon: { padding: 4 },
+  main: {
+    paddingHorizontal: 0,
+    gap: 0,
+    paddingTop: 24,
+  },
+  missionCardWrap: {
+    marginHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 24,
+    marginBottom: 12,
+    marginHorizontal: 16,
+  },
+  questsScrollContent: {
+    paddingVertical: 4,
+  },
+  questCard: {
+    width: 185,
+    marginRight: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  questCardFirst: {
+    marginLeft: 16,
+  },
+  questCardLast: {
+    marginRight: 16,
+  },
+  questIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questIconEmoji: {
+    fontSize: 20,
+  },
+  questCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 10,
+    color: '#1a1a1a',
+  },
+  questTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  questTagText: {
+    fontSize: 11,
+  },
+  questSteps: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+  },
+  questSubtitle: {
+    fontSize: 12,
+    color: '#6C63FF',
+    marginTop: 2,
+  },
+  quickWinsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginHorizontal: 16,
+  },
+  quickWinCard: {
+    width: '47%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  quickWinEmoji: {
+    fontSize: 28,
+    marginBottom: 10,
+  },
+  quickWinTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  quickWinArrow: {
+    fontSize: 18,
+    color: '#6C63FF',
+    alignSelf: 'flex-end',
+  },
 });

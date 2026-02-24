@@ -101,7 +101,7 @@ export function TransactionsScreen() {
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </Text>
                 }
-                onPress={() => navigation.navigate('TransactionDetail', { transactionId: t.id })}
+                onPress={() => (navigation as unknown as { navigate: (s: string, p?: { transactionId: string }) => void }).navigate('TransactionDetail', { transactionId: t.id })}
               />
             ))
           )}

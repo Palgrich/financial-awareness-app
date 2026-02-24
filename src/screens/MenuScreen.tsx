@@ -34,7 +34,10 @@ export function MenuScreen() {
           <TouchableOpacity
             key={screen}
             style={[styles.row, i > 0 && styles.rowBorder, { borderTopColor: borderColor }]}
-            onPress={() => navigation.navigate(screen)}
+            onPress={() => {
+              if (screen === 'Notifications') navigation.navigate('Notifications');
+              else if (screen === 'Settings') navigation.navigate('Settings');
+            }}
             activeOpacity={0.7}
           >
             <Text style={[styles.rowLabel, { color: textColor }]}>{label}</Text>

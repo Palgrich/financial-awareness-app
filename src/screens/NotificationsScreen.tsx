@@ -1,13 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppHeader, AppHeaderDark, Card } from '../components';
 import { useStore } from '../state/store';
+import { useProgressStore } from '../state/progressStore';
 import { generateInsights } from '../insights/insightEngine';
 import type { DashboardStackParamList } from '../navigation/types';
-
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'Notifications'>;
 
 export interface NotificationItem {
@@ -28,6 +28,12 @@ export function NotificationsScreen() {
   const subscriptions = useStore((s) => s.subscriptions);
   const selectedInstitutionId = useStore((s) => s.selectedInstitutionId);
   const monthlyIncome = useStore((s) => s.preferences.monthlyIncome);
+  const progressNotifications = useProgressStore((s) => s.userData.notifications);
+  const setNotificationsViewed = useProgressStore((s) => s.setNotificationsViewed);
+
+  useEffect(() => {
+    setNotificationsViewed();
+  }, [setNotificationsViewed]);
 
   const visibleAccountIds = useMemo(() => {
     const ids = new Set<string>();
@@ -70,6 +76,17 @@ export function NotificationsScreen() {
 
   const notifications: NotificationItem[] = useMemo(() => {
     const list: NotificationItem[] = [];
+    progressNotifications.forEach((n, idx) => {
+      const icon = n.type === 'urgent' ? '🔴' : n.type === 'warning' ? '🟡' : 'ℹ️';
+      list.push({
+        id: `progress-${idx}`,
+        title: `${icon} ${n.text}`,
+        message: '',
+        timestamp: n.time,
+        ctaLabel: n.type === 'urgent' ? 'View' : undefined,
+        ctaRoute: 'Learn',
+      });
+    });
     behavioralInsights.forEach((b) => {
       list.push({
         id: `beh-${b.type}`,
@@ -91,7 +108,7 @@ export function NotificationsScreen() {
       });
     });
     return list;
-  }, [behavioralInsights, subscriptionAndFeeInsights]);
+  }, [progressNotifications, behavioralInsights, subscriptionAndFeeInsights]);
 
   const Header = dark ? AppHeaderDark : AppHeader;
   const bg = dark ? '#0f172a' : '#f8fafc';

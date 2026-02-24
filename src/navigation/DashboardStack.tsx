@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { DashboardStackParamList } from './types';
-import { DashboardScreen } from '../screens/DashboardScreen';
+import { ProgressScreen } from '../screens/ProgressScreen';
 import { TransactionDetailScreen } from '../screens/TransactionDetailScreen';
 import { TransactionsByCategoryScreen } from '../screens/TransactionsByCategoryScreen';
 import { SubscriptionsScreen } from '../screens/SubscriptionsScreen';
@@ -15,13 +15,17 @@ import { AddDebtScreen } from '../screens/AddDebtScreen';
 import { EditDebtScreen } from '../screens/EditDebtScreen';
 import { MenuScreen } from '../screens/MenuScreen';
 import { TransactionsScreen } from '../screens/TransactionsScreen';
+import { HealthBreakdownScreen } from '../screens/HealthBreakdownScreen';
+import { PaycheckBreakdownScreen } from '../screens/PaycheckBreakdownScreen';
+import { ProgressSubscriptionListScreen } from '../screens/ProgressSubscriptionListScreen';
+import { CreditCardDetailsScreen } from '../screens/CreditCardDetailsScreen';
 
 const Stack = createNativeStackNavigator<DashboardStackParamList>();
 
 export function DashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="DashboardHome" component={DashboardScreen} />
+      <Stack.Screen name="DashboardHome" component={ProgressScreen} />
       <Stack.Screen name="Menu" component={MenuScreen} />
       <Stack.Screen name="SubscriptionsHome" component={SubscriptionsScreen} />
       <Stack.Screen name="SubscriptionDetail" component={SubscriptionDetailScreen} />
@@ -35,6 +39,10 @@ export function DashboardStack() {
       <Stack.Screen name="DebtsList" component={DebtsListScreen} />
       <Stack.Screen name="AddDebt" component={AddDebtScreen} />
       <Stack.Screen name="EditDebt" component={EditDebtScreen} />
+      <Stack.Screen name="HealthBreakdown" component={HealthBreakdownScreen} />
+      <Stack.Screen name="PaycheckBreakdown" component={PaycheckBreakdownScreen} />
+      <Stack.Screen name="ProgressSubscriptionList" component={ProgressSubscriptionListScreen} />
+      <Stack.Screen name="CreditCardDetails" component={CreditCardDetailsScreen} />
     </Stack.Navigator>
   );
 }

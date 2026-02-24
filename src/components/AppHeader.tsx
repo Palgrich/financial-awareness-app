@@ -4,14 +4,17 @@ import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 interface AppHeaderProps {
   title: string;
   subtitle?: string;
+  /** Optional greeting line above title (e.g. "Good morning 👋") in gray #888 */
+  greeting?: string;
   right?: React.ReactNode;
   style?: ViewStyle;
 }
 
-export function AppHeader({ title, subtitle, right, style }: AppHeaderProps) {
+export function AppHeader({ title, subtitle, greeting, right, style }: AppHeaderProps) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.left}>
+        {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
         <Text style={styles.title}>{title}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
@@ -31,6 +34,11 @@ const styles = StyleSheet.create({
   },
   left: { flex: 1 },
   right: {},
+  greeting: {
+    fontSize: 13,
+    color: '#888',
+    marginBottom: 2,
+  },
   title: {
     fontSize: 24,
     fontWeight: '600',

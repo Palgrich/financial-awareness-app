@@ -41,6 +41,10 @@ export type DashboardStackParamList = {
   DebtsList: undefined;
   AddDebt: undefined;
   EditDebt: { debtId: string };
+  HealthBreakdown: undefined;
+  PaycheckBreakdown: undefined;
+  ProgressSubscriptionList: undefined;
+  CreditCardDetails: undefined;
 };
 
 export type SubscriptionsStackParamList = {
@@ -54,8 +58,16 @@ export type CoachStackParamList = {
 
 export type LearnStackParamList = {
   LearnHome: undefined;
+  PathDetail: { pathId: string };
   LessonDetail: { lessonId: string };
   ChallengeDetail: { challengeId: string };
+  Notifications: undefined;
+  Menu: undefined;
+  /** Subscription Cleanse quest: step 1–4 or guide. */
+  QuestSubscriptionCleanse: { step?: number; serviceName?: string };
+  QuestCelebration: { savedAmount: number; serviceName?: string };
+  /** Quick win: quiz or guide (id from QUICK_WINS). */
+  QuickWin: { id: string; type: 'quiz' | 'guide' };
 };
 
 export type ProfileStackParamList = {
