@@ -1,4 +1,5 @@
 export { DashboardScreen } from './DashboardScreen';
+export { ProgressScreen } from './ProgressScreen';
 export { TransactionsScreen } from './TransactionsScreen';
 export { BudgetScreen } from './BudgetScreen';
 export { DebtsScreen } from './DebtsScreen';
@@ -9,6 +10,7 @@ export { CoachScreen } from './CoachScreen';
 export { LearnScreen } from './LearnScreen';
 export { LessonDetailScreen } from './LessonDetailScreen';
 export { ChallengeDetailScreen } from './ChallengeDetailScreen';
+export { PathDetailScreen } from './PathDetailScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { DebtsListScreen } from './DebtsListScreen';
 export { AddDebtScreen } from './AddDebtScreen';

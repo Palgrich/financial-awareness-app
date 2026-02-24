@@ -5,8 +5,9 @@ import type { RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, PrimaryButton } from '../components';
 import { useStore } from '../state/store';
-import type { LearnStackParamList } from '../navigation/types';
 import type { LessonProgress } from '../state/store';
+import { useProgressStore } from '../state/progressStore';
+import type { LearnStackParamList } from '../navigation/types';
 
 type Route = RouteProp<LearnStackParamList, 'LessonDetail'>;
 
@@ -19,6 +20,8 @@ export function LessonDetailScreen() {
   const setLessonProgress = useStore((s) => s.setLessonProgress);
   const updateXP = useStore((s) => s.updateXP);
   const dark = useStore((s) => s.preferences.darkMode);
+  const progressCompleteLesson = useProgressStore((s) => s.completeLesson);
+  const progressTotalLessons = useProgressStore((s) => s.userData.financialAwareness.totalLessons);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
@@ -47,6 +50,7 @@ export function LessonDetailScreen() {
   const markComplete = () => {
     setLessonProgress(lessonId, 'completed');
     updateXP(25, lessonId, lesson.durationMin);
+    progressCompleteLesson(progressTotalLessons);
     navigation.goBack();
   };
 
