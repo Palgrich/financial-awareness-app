@@ -1,22 +1,35 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   Text,
+  RefreshControl,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Bell, Menu } from 'lucide-react-native';
 import { AppHeader } from '../components';
-import { TodaysMissionCard } from '../components/learn';
+import {
+  TodaysMissionCard,
+  ChallengesCard,
+  LearningPathsCard,
+  LessonsCard,
+} from '../components/learn';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LearnStackParamList } from '../navigation/types';
 import { learnUserData, type LearnUserData as LearnUserDataType } from '../data/learnUserData';
 import { getQuestProgress, getStreak } from '../data/learnQuestStorage';
 import type { QuestProgressState } from '../data/learnQuestStorage';
+import { getLearnData, markLessonCompleted } from '../api/endpoints/learn';
+import { queryKeys } from '../api/queryKeys';
+import { colors } from '../theme/tokens';
+import type { Challenge, LearningPath, Lesson } from '../types/domain';
+import type { ChallengeRow, PathRow, LessonRow } from '../components/learn';
 
 const LEARN_QUESTS = [
   {
@@ -112,10 +125,52 @@ function MoneyFactCard() {
 
 type Nav = NativeStackNavigationProp<LearnStackParamList, 'LearnHome'>;
 
+function toChallengeRows(challenges: Challenge[]): ChallengeRow[] {
+  return challenges.map((c) => ({ id: c.id, title: c.title, status: c.status }));
+}
+
+function toPathRows(paths: LearningPath[]): PathRow[] {
+  return paths.map((p) => ({ id: p.id, title: p.title, lessonCount: p.lessonsCount }));
+}
+
+function toLessonRows(lessons: Lesson[]): LessonRow[] {
+  return lessons.map((l) => ({
+    id: l.id,
+    title: l.title,
+    durationMin: l.minutes,
+    progress: l.status === 'done' ? 'completed' : l.status,
+  }));
+}
+
 export function LearnScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<Nav>();
+  const queryClient = useQueryClient();
+  const { data: learnData, isLoading: learnLoading, isError: learnError, refetch: refetchLearn } = useQuery({
+    queryKey: queryKeys.learn(),
+    queryFn: getLearnData,
+  });
+
+  const markDoneMutation = useMutation({
+    mutationFn: (lessonId: string) => markLessonCompleted(lessonId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.learn() }),
+  });
+
+  const challenges: ChallengeRow[] = useMemo(
+    () => (learnLoading ? [] : toChallengeRows(learnData?.challenges ?? [])),
+    [learnData?.challenges, learnLoading]
+  );
+  const paths: PathRow[] = useMemo(
+    () => (learnLoading ? [] : toPathRows(learnData?.paths ?? [])),
+    [learnData?.paths, learnLoading]
+  );
+  const lessons: LessonRow[] = useMemo(
+    () => (learnLoading ? [] : toLessonRows(learnData?.lessons ?? [])),
+    [learnData?.lessons, learnLoading]
+  );
+
+  const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState<QuestProgressState>({
     subscriptionCleanse: 0,
     creditCardBasics: 0,
@@ -134,6 +189,15 @@ export function LearnScreen() {
     setProgress(p);
     setStreak(s > 0 ? s : learnUserData.streak);
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.learn() }),
+      loadStorage(),
+    ]);
+    setRefreshing(false);
+  }, [queryClient, loadStorage]);
 
   useFocusEffect(
     useCallback(() => {
@@ -176,7 +240,23 @@ export function LearnScreen() {
           { paddingBottom: tabBarHeight + (insets.bottom || 24) },
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6366F1"
+          />
+        }
       >
+        {learnError ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorCardTitle}>Can't load data</Text>
+            <Text style={styles.errorCardSubtitle}>Pull to refresh or try again.</Text>
+            <Pressable style={({ pressed }) => [styles.errorCardButton, pressed && styles.errorCardButtonPressed]} onPress={() => refetchLearn()}>
+              <Text style={styles.errorCardButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
         <AppHeader
           title="Learn"
           subtitle="Your personalized plan"
@@ -196,6 +276,31 @@ export function LearnScreen() {
               // Could navigate to payment flow or show modal
             }}
               onIUseIt={() => {}}
+            />
+          </View>
+
+          <View style={styles.learnSectionWrap}>
+            <ChallengesCard
+              challenges={challenges}
+              onChallengePress={(challengeId) => {
+                // TODO: navigate to challenge detail when screen exists
+              }}
+            />
+          </View>
+          <View style={styles.learnSectionWrap}>
+            <LearningPathsCard
+              paths={paths}
+              onPathPress={(pathId) => navigation.navigate('PathDetail', { pathId })}
+            />
+          </View>
+          <View style={styles.learnSectionWrap}>
+            <LessonsCard
+              lessons={lessons}
+              onLessonPress={(lessonId) => navigation.navigate('LessonDetail', { lessonId })}
+              onLessonLongPress={(lessonId) => {
+                if (markDoneMutation.isPending) return;
+                markDoneMutation.mutate(lessonId);
+              }}
             />
           </View>
 
@@ -288,6 +393,10 @@ const styles = StyleSheet.create({
   },
   missionCardWrap: {
     marginHorizontal: 16,
+  },
+  learnSectionWrap: {
+    marginHorizontal: 16,
+    marginTop: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -385,5 +494,38 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#6C63FF',
     alignSelf: 'flex-end',
+  },
+  errorCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  errorCardSubtitle: {
+    fontSize: 14,
+    color: colors.text.muted,
+    marginBottom: 12,
+  },
+  errorCardButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accent.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  errorCardButtonPressed: { opacity: 0.8 },
+  errorCardButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.white,
   },
 });
