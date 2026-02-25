@@ -14,7 +14,8 @@ import { IllustrationBackgroundLayer } from './IllustrationBackgroundLayer';
 import { StatusBadge } from './StatusBadge';
 
 export interface FinancialHealthHeroCardProps {
-  score: number;
+  /** Score number or placeholder e.g. '--' when loading */
+  score: number | string;
   maxScore: number;
   status: string;
   statusColor: string;

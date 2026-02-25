@@ -32,9 +32,11 @@ function progressToStatusColor(p: LessonProgressStatus): string {
 export interface LessonsCardProps {
   lessons: LessonRow[];
   onLessonPress: (lessonId: string) => void;
+  /** Optional: long-press on a lesson row (e.g. to mark as done). */
+  onLessonLongPress?: (lessonId: string) => void;
 }
 
-export function LessonsCard({ lessons, onLessonPress }: LessonsCardProps) {
+export function LessonsCard({ lessons, onLessonPress, onLessonLongPress }: LessonsCardProps) {
   const content = (
     <>
       <IllustrationBackgroundLayer
@@ -54,6 +56,7 @@ export function LessonsCard({ lessons, onLessonPress }: LessonsCardProps) {
               pressed && styles.rowPressed,
             ]}
             onPress={() => onLessonPress(lesson.id)}
+            onLongPress={() => onLessonLongPress?.(lesson.id)}
           >
             <View style={styles.rowLeft}>
               <Text style={styles.rowTitle}>{lesson.title}</Text>

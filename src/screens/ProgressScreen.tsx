@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   RefreshControl,
   Text,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, Menu } from 'lucide-react-native';
 import {
@@ -19,11 +21,13 @@ import {
   CashControlCard,
   PaydayStatusCard,
 } from '../components';
-import { gradientColors } from '../theme/tokens';
+import { gradientColors, colors } from '../theme/tokens';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DashboardStackParamList } from '../navigation/types';
 import { useProgressStore } from '../state/progressStore';
 import type { CashControlStatus } from '../domain/cashControl';
+import { getMetrics } from '../api/endpoints/metrics';
+import { queryKeys } from '../api/queryKeys';
 
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
 
@@ -71,6 +75,12 @@ export function ProgressScreen() {
   const navigation = useNavigation<Nav>();
   const [refreshing, setRefreshing] = useState(false);
 
+  const queryClient = useQueryClient();
+  const { data: metrics, isLoading: metricsLoading, isError: metricsError, refetch: refetchMetrics } = useQuery({
+    queryKey: queryKeys.metrics(),
+    queryFn: getMetrics,
+  });
+
   const userData = useProgressStore((s) => s.userData);
   const healthCardHintSeen = useProgressStore((s) => s.healthCardHintSeen);
   const notificationsViewedAt = useProgressStore((s) => s.notificationsViewedAt);
@@ -80,6 +90,12 @@ export function ProgressScreen() {
   const setHealthCardHintSeen = useProgressStore((s) => s.setHealthCardHintSeen);
   const setNotificationsViewed = useProgressStore((s) => s.setNotificationsViewed);
 
+  const financialHealthScore = metrics?.financialHealth ?? 0;
+  const heroStatus =
+    financialHealthScore >= 80 ? 'Good' : financialHealthScore >= 60 ? 'Moderate' : 'High';
+  const heroStatusColor =
+    financialHealthScore >= 80 ? '#22C55E' : financialHealthScore >= 60 ? '#F59E0B' : '#EF4444';
+
   useEffect(() => {
     loadHintSeen();
     loadUserData();
@@ -88,10 +104,13 @@ export function ProgressScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    await loadUserData();
+    await Promise.all([
+      new Promise((r) => setTimeout(r, 1500)),
+      loadUserData(),
+      queryClient.invalidateQueries({ queryKey: queryKeys.metrics() }),
+    ]);
     setRefreshing(false);
-  }, [loadUserData]);
+  }, [loadUserData, queryClient]);
 
   const hasUrgentNotifications = useMemo(() => {
     const urgent = userData.notifications.some((n) => n.type === 'urgent');
@@ -157,6 +176,15 @@ export function ProgressScreen() {
           />
         }
       >
+        {metricsError ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorCardTitle}>Can't load data</Text>
+            <Text style={styles.errorCardSubtitle}>Pull to refresh or try again.</Text>
+            <Pressable style={({ pressed }) => [styles.errorCardButton, pressed && styles.errorCardButtonPressed]} onPress={() => refetchMetrics()}>
+              <Text style={styles.errorCardButtonText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
         <AppHeader
           greeting={greeting}
           title="Progress"
@@ -165,24 +193,12 @@ export function ProgressScreen() {
         />
         <View style={styles.main}>
           <FinancialHealthHeroCard
-            score={userData.financialHealthScore}
+            score={metricsLoading ? '--' : (metrics?.financialHealth ?? 0)}
             maxScore={100}
-            status={
-              userData.financialHealthScore >= 80
-                ? 'Good'
-                : userData.financialHealthScore >= 60
-                  ? 'Moderate'
-                  : 'High'
-            }
-            statusColor={
-              userData.financialHealthScore >= 80
-                ? '#22C55E'
-                : userData.financialHealthScore >= 60
-                  ? '#F59E0B'
-                  : '#EF4444'
-            }
+            status={heroStatus}
+            statusColor={heroStatusColor}
             description="Your finances are stable with room to improve"
-            filledSegments={scoreToFilled(userData.financialHealthScore)}
+            filledSegments={scoreToFilled(financialHealthScore)}
             totalSegments={5}
             onPress={() => navigation.navigate('HealthBreakdown')}
             showTapHint
@@ -212,9 +228,7 @@ export function ProgressScreen() {
             balanceCurrent={userData.currentBalance}
             balanceChangePct={null}
             status={cashControlStatus}
-            filledSegments={scoreToFilled(
-              userData.healthBreakdown.cashControl.score * 4
-            )}
+            filledSegments={scoreToFilled(metrics?.cashControlScore ?? 0)}
             weeklySpending={userData.weeklySpending}
             topCategories={userData.topCategories}
             onPress={() => navigation.navigate('TransactionsHome')}
@@ -223,13 +237,13 @@ export function ProgressScreen() {
 
           <MetricCard
             title="Financial Awareness"
-            value={`${userData.financialAwareness.lessonsCompleted} / ${userData.financialAwareness.totalLessons} lessons completed`}
+            value={
+              metricsLoading
+                ? '--'
+                : `${userData.financialAwareness.lessonsCompleted} / ${userData.financialAwareness.totalLessons} lessons completed`
+            }
             status={statusToType(userData.healthBreakdown.financialAwareness.status)}
-            filledSegments={scoreToFilled(
-              (userData.financialAwareness.lessonsCompleted /
-                userData.financialAwareness.totalLessons) *
-                100
-            )}
+            filledSegments={scoreToFilled(metrics?.awarenessScore ?? 0)}
             variant="awareness"
             levelSubtitle={userData.financialAwareness.levelName}
             nextLessonTitle={nextLesson?.title}
@@ -243,14 +257,14 @@ export function ProgressScreen() {
 
           <MetricCard
             title="Subscription Load"
-            value={`$${userData.subscriptionMonthly.toFixed(2)} / month`}
+            value={
+              metricsLoading
+                ? '--'
+                : `$${userData.subscriptionMonthly.toFixed(2)} / month`
+            }
             status={statusToType(userData.subscriptionStatus)}
             description={`${userData.subscriptionCount} active`}
-            filledSegments={scoreToFilled(
-              (userData.healthBreakdown.subscriptionLoad.score /
-                userData.healthBreakdown.subscriptionLoad.max) *
-                100
-            )}
+            filledSegments={scoreToFilled(metrics?.subscriptionScore ?? 0)}
             variant="subscription"
             yearlyText={`That's $${userData.subscriptionYearly.toLocaleString()} / year`}
             secondaryActionLabel="See all subscriptions"
@@ -268,14 +282,12 @@ export function ProgressScreen() {
 
           <MetricCard
             title="Credit Card Payments"
-            value={`$${userData.lastStatementBalance}`}
+            value={
+              metricsLoading ? '--' : `$${userData.lastStatementBalance}`
+            }
             status={statusToType(userData.creditCardStatus)}
             description="Last statement"
-            filledSegments={scoreToFilled(
-              (userData.healthBreakdown.creditCardPayments.score /
-                userData.healthBreakdown.creditCardPayments.max) *
-                100
-            )}
+            filledSegments={scoreToFilled(metrics?.creditScore ?? 0)}
             variant="credit"
             actionLabel="Details"
             onPress={() => navigation.navigate('CreditCardDetails')}
@@ -324,5 +336,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 16,
     paddingTop: 24,
+  },
+  errorCard: {
+    marginHorizontal: 24,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  errorCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  errorCardSubtitle: {
+    fontSize: 14,
+    color: colors.text.muted,
+    marginBottom: 12,
+  },
+  errorCardButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accent.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  errorCardButtonPressed: { opacity: 0.8 },
+  errorCardButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.white,
   },
 });
