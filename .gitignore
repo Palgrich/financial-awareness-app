@@ -23,3 +23,8 @@ build/
 .env.*.local
 .env.development
 .env.production
+
+# local dev folders
+.cursor/
+output/
+tmp/
