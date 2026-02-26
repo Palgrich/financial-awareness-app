@@ -17,12 +17,14 @@ import type { AuthStackParamList } from '../navigation/types';
 import { useAuthStore } from '../state/authStore';
 import { loginUser } from '../api/auth';
 import { colors } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export function LoginScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
+  const { colors: themeColors } = useTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,7 +55,7 @@ export function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background.primaryStart }}
+      style={{ flex: 1, backgroundColor: themeColors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -61,13 +63,13 @@ export function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
-          <Text style={styles.title}>Sign in</Text>
-          <Text style={styles.subtitle}>Use your email and password</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>Sign in</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textMuted }]}>Use your email and password</Text>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor, color: themeColors.textPrimary }]}
             placeholder="Email"
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={themeColors.textMuted}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -76,9 +78,9 @@ export function LoginScreen() {
             editable={!loading}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor, color: themeColors.textPrimary }]}
             placeholder="Password"
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={themeColors.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -100,7 +102,7 @@ export function LoginScreen() {
           </Pressable>
 
           <Pressable style={styles.linkWrap} onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.linkHint}>Don't have an account? </Text>
+            <Text style={[styles.linkHint, { color: themeColors.textMuted }]}>Don't have an account? </Text>
             <Text style={styles.link}>Sign up</Text>
           </Pressable>
         </View>

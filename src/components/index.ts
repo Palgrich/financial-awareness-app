@@ -30,6 +30,8 @@ export { IllustrationBackgroundLayer } from './IllustrationBackgroundLayer';
 export type { IllustrationBackgroundLayerProps } from './IllustrationBackgroundLayer';
 export { FinancialHealthHeroCard } from './FinancialHealthHeroCard';
 export type { FinancialHealthHeroCardProps } from './FinancialHealthHeroCard';
+export { FinancialWeatherCard } from './FinancialWeatherCard';
+export type { FinancialWeatherCardProps } from './FinancialWeatherCard';
 export { MetricCard } from './MetricCard';
 export type { MetricCardProps } from './MetricCard';
 export { CashControlCard } from './CashControlCard';

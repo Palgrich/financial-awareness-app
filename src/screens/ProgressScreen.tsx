@@ -16,18 +16,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, Menu } from 'lucide-react-native';
 import {
   AppHeader,
-  FinancialHealthHeroCard,
+  AppHeaderDark,
+  FinancialWeatherCard,
   MetricCard,
   CashControlCard,
-  PaydayStatusCard,
 } from '../components';
-import { gradientColors, colors } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DashboardStackParamList } from '../navigation/types';
 import { useProgressStore } from '../state/progressStore';
 import type { CashControlStatus } from '../domain/cashControl';
 import { getMetrics } from '../api/endpoints/metrics';
 import { queryKeys } from '../api/queryKeys';
+import { getFinancialWeather } from '../utils/financialWeather';
 
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
 
@@ -73,6 +75,7 @@ export function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<Nav>();
+  const { isDark, colors: themeColors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
   const queryClient = useQueryClient();
@@ -82,25 +85,43 @@ export function ProgressScreen() {
   });
 
   const userData = useProgressStore((s) => s.userData);
-  const healthCardHintSeen = useProgressStore((s) => s.healthCardHintSeen);
   const notificationsViewedAt = useProgressStore((s) => s.notificationsViewedAt);
-  const loadHintSeen = useProgressStore((s) => s.loadHintSeen);
   const loadUserData = useProgressStore((s) => s.loadUserData);
   const loadNotificationsViewed = useProgressStore((s) => s.loadNotificationsViewed);
-  const setHealthCardHintSeen = useProgressStore((s) => s.setHealthCardHintSeen);
   const setNotificationsViewed = useProgressStore((s) => s.setNotificationsViewed);
 
-  const financialHealthScore = metrics?.financialHealth ?? 0;
-  const heroStatus =
-    financialHealthScore >= 80 ? 'Good' : financialHealthScore >= 60 ? 'Moderate' : 'High';
-  const heroStatusColor =
-    financialHealthScore >= 80 ? '#22C55E' : financialHealthScore >= 60 ? '#F59E0B' : '#EF4444';
+  const weather = useMemo(() => {
+    const baseScores = {
+      financialHealth: metrics?.financialHealth ?? userData.financialHealthScore,
+      awarenessScore:
+        metrics?.awarenessScore ?? userData.healthBreakdown.financialAwareness.score,
+      cashControlScore: metrics?.cashControlScore ?? userData.healthBreakdown.cashControl.score,
+      subscriptionScore:
+        metrics?.subscriptionScore ?? userData.healthBreakdown.subscriptionLoad.score,
+      creditScore:
+        metrics?.creditScore ?? userData.healthBreakdown.creditCardPayments.score,
+    };
+
+    return getFinancialWeather({
+      ...baseScores,
+      subscriptionCount: userData.subscriptionCount,
+      subscriptionMonthly: userData.subscriptionMonthly,
+      spendingThisMonth: userData.expensesThisMonth,
+      spendingLastMonth: userData.expensesLastMonth,
+      creditPaymentDueDays: userData.daysUntilDue,
+      creditPaymentAmount: userData.minimumDue,
+      creditCardName: 'Chase Sapphire',
+      daysUntilPayday: userData.daysUntilPaycheck,
+      amountLeftUntilPayday: userData.availableBalance,
+      dailyBudget: userData.dailyBudgetSafe,
+      actualDailySpend: userData.avgDailySpendLast3Days,
+    });
+  }, [metrics, userData]);
 
   useEffect(() => {
-    loadHintSeen();
     loadUserData();
     loadNotificationsViewed();
-  }, [loadHintSeen, loadUserData, loadNotificationsViewed]);
+  }, [loadUserData, loadNotificationsViewed]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -128,7 +149,7 @@ export function ProgressScreen() {
         style={styles.headerIcon}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Bell size={22} color="#0F172A" strokeWidth={2} />
+        <Bell size={22} color={themeColors.textPrimary} strokeWidth={2} />
         {hasUrgentNotifications ? (
           <View style={styles.bellBadge} />
         ) : null}
@@ -138,14 +159,14 @@ export function ProgressScreen() {
         style={styles.headerIcon}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Menu size={22} color="#0F172A" strokeWidth={2} />
+        <Menu size={22} color={themeColors.textPrimary} strokeWidth={2} />
       </TouchableOpacity>
     </View>
   );
 
+  const Header = isDark ? AppHeaderDark : AppHeader;
   const greeting = getGreeting();
   const nextLesson = useMemo(() => getNextLesson(userData), [userData]);
-  const showPaycheckCard = userData.availableBalance < 800;
   const cashControlStatus: CashControlStatus =
     userData.cashControlStatus === 'Good'
       ? 'good'
@@ -156,7 +177,7 @@ export function ProgressScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <LinearGradient
-        colors={gradientColors.background}
+        colors={themeColors.backgroundGradient}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -177,44 +198,33 @@ export function ProgressScreen() {
         }
       >
         {metricsError ? (
-          <View style={styles.errorCard}>
-            <Text style={styles.errorCardTitle}>Can't load data</Text>
-            <Text style={styles.errorCardSubtitle}>Pull to refresh or try again.</Text>
+          <View style={[styles.errorCard, { backgroundColor: isDark ? '#7F1D1D' : undefined, borderColor: isDark ? '#991B1B' : undefined }]}>
+            <Text style={[styles.errorCardTitle, { color: themeColors.textPrimary }]}>Can't load data</Text>
+            <Text style={[styles.errorCardSubtitle, { color: themeColors.textMuted }]}>Pull to refresh or try again.</Text>
             <Pressable style={({ pressed }) => [styles.errorCardButton, pressed && styles.errorCardButtonPressed]} onPress={() => refetchMetrics()}>
               <Text style={styles.errorCardButtonText}>Retry</Text>
             </Pressable>
           </View>
         ) : null}
-        <AppHeader
+        <Header
           greeting={greeting}
           title="Progress"
           subtitle="Your money clarity"
           right={headerRight}
         />
         <View style={styles.main}>
-          <FinancialHealthHeroCard
-            score={metricsLoading ? '--' : (metrics?.financialHealth ?? 0)}
-            maxScore={100}
-            status={heroStatus}
-            statusColor={heroStatusColor}
-            description="Your finances are stable with room to improve"
-            filledSegments={scoreToFilled(financialHealthScore)}
-            totalSegments={5}
+          <FinancialWeatherCard
+            weather={weather}
             onPress={() => navigation.navigate('HealthBreakdown')}
-            showTapHint
-            showPulse={!healthCardHintSeen}
-            onHintPulseDone={() => setHealthCardHintSeen()}
+            onActionPress={(actionId) => {
+              if (actionId === 'subscriptions') navigation.navigate('ProgressSubscriptionList');
+              else if (actionId === 'cash-control') navigation.navigate('TransactionsHome');
+              else if (actionId === 'credit-payment') navigation.navigate('CreditCardDetails');
+              else if (actionId === 'payday-pace') navigation.navigate('TransactionsHome');
+              else if (actionId === 'awareness')
+                (navigation.getParent() as any)?.navigate('Learn', { screen: 'LearnHome' });
+            }}
           />
-
-          {showPaycheckCard ? (
-            <PaydayStatusCard
-              daysUntilPaycheck={userData.daysUntilPaycheck}
-              availableBalance={userData.availableBalance}
-              targetDaily={userData.dailyBudgetSafe}
-              actualDaily={userData.avgDailySpendLast3Days}
-              onPress={() => navigation.navigate('PaycheckBreakdown')}
-            />
-          ) : null}
 
           <CashControlCard
             expensesThisMonth={userData.expensesThisMonth}

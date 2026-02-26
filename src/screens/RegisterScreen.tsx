@@ -17,12 +17,14 @@ import type { AuthStackParamList } from '../navigation/types';
 import { useAuthStore } from '../state/authStore';
 import { registerUser } from '../api/auth';
 import { colors } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
 export function RegisterScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
+  const { colors: themeColors } = useTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,7 +60,7 @@ export function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background.primaryStart }}
+      style={{ flex: 1, backgroundColor: themeColors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -66,22 +68,22 @@ export function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
-          <Text style={styles.title}>Create account</Text>
-          <Text style={styles.subtitle}>Name, email and password</Text>
+          <Text style={[styles.title, { color: themeColors.textPrimary }]}>Create account</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textMuted }]}>Name, email and password</Text>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor, color: themeColors.textPrimary }]}
             placeholder="Name (optional)"
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={themeColors.textMuted}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
             editable={!loading}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor, color: themeColors.textPrimary }]}
             placeholder="Email"
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={themeColors.textMuted}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -90,9 +92,9 @@ export function RegisterScreen() {
             editable={!loading}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: themeColors.cardBackground, borderColor: themeColors.borderColor, color: themeColors.textPrimary }]}
             placeholder="Password"
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={themeColors.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -114,7 +116,7 @@ export function RegisterScreen() {
           </Pressable>
 
           <Pressable style={styles.linkWrap} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.linkHint}>Already have an account? </Text>
+            <Text style={[styles.linkHint, { color: themeColors.textMuted }]}>Already have an account? </Text>
             <Text style={styles.link}>Log in</Text>
           </Pressable>
         </View>

@@ -13,7 +13,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Bell, Menu } from 'lucide-react-native';
-import { AppHeader } from '../components';
+import { AppHeader, AppHeaderDark } from '../components';
 import {
   TodaysMissionCard,
   ChallengesCard,
@@ -28,6 +28,7 @@ import type { QuestProgressState } from '../data/learnQuestStorage';
 import { getLearnData, markLessonCompleted } from '../api/endpoints/learn';
 import { queryKeys } from '../api/queryKeys';
 import { colors } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 import type { Challenge, LearningPath, Lesson } from '../types/domain';
 import type { ChallengeRow, PathRow, LessonRow } from '../components/learn';
 
@@ -71,8 +72,6 @@ const QUICK_WINS_INLINE = [
   { id: 'bankStatement', emoji: '🧾', title: 'Read your bank statement', type: 'quiz' as const },
 ];
 
-const BACKGROUND = '#F0F2F7';
-
 const MONEY_FACTS = [
   'People who track their spending save an average of $200 more per month than those who don\'t.',
   'Paying just $10 extra on a $500 credit card balance saves $150 in interest.',
@@ -85,9 +84,7 @@ const MONEY_FACTS = [
 
 const moneyFactStyles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFBEB',
     borderWidth: 1,
-    borderColor: '#FDE68A',
     borderRadius: 16,
     padding: 16,
     marginTop: 8,
@@ -96,29 +93,30 @@ const moneyFactStyles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F172A',
     marginBottom: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: '#FDE68A',
     marginBottom: 12,
   },
   text: {
     fontSize: 14,
-    color: '#0F172A',
     lineHeight: 22,
   },
 });
 
 function MoneyFactCard() {
+  const { isDark, colors: themeColors } = useTheme();
   const dayIndex = new Date().getDay();
   const fact = MONEY_FACTS[dayIndex] ?? MONEY_FACTS[0];
+  const cardBg = isDark ? themeColors.cardBackground : '#FFFBEB';
+  const borderColor = isDark ? themeColors.borderColor : '#FDE68A';
+  const textColor = themeColors.textPrimary;
   return (
-    <View style={moneyFactStyles.card}>
-      <Text style={moneyFactStyles.title}>💡 Did you know?</Text>
-      <View style={moneyFactStyles.divider} />
-      <Text style={moneyFactStyles.text}>{fact}</Text>
+    <View style={[moneyFactStyles.card, { backgroundColor: cardBg, borderColor }]}>
+      <Text style={[moneyFactStyles.title, { color: textColor }]}>💡 Did you know?</Text>
+      <View style={[moneyFactStyles.divider, { backgroundColor: borderColor }]} />
+      <Text style={[moneyFactStyles.text, { color: textColor }]}>{fact}</Text>
     </View>
   );
 }
@@ -146,6 +144,8 @@ export function LearnScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<Nav>();
+  const { isDark, colors: themeColors } = useTheme();
+  const Header = isDark ? AppHeaderDark : AppHeader;
   const queryClient = useQueryClient();
   const { data: learnData, isLoading: learnLoading, isError: learnError, refetch: refetchLearn } = useQuery({
     queryKey: queryKeys.learn(),
@@ -207,23 +207,23 @@ export function LearnScreen() {
 
   const headerRight = (
     <View style={styles.headerRight}>
-      <View style={styles.streakPill}>
+      <View style={[styles.streakPill, isDark && { backgroundColor: themeColors.cardBackground }]}>
         <Text style={styles.streakEmoji}>🔥</Text>
-        <Text style={styles.streakText}>{streak} day streak</Text>
+        <Text style={[styles.streakText, { color: themeColors.textPrimary }]}>{streak} day streak</Text>
       </View>
       <TouchableOpacity
         onPress={() => navigation.navigate('Notifications')}
         style={styles.headerIcon}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Bell size={22} color="#0F172A" />
+        <Bell size={22} color={themeColors.textPrimary} />
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.navigate('Menu')}
         style={styles.headerIcon}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Menu size={22} color="#0F172A" />
+        <Menu size={22} color={themeColors.textPrimary} />
       </TouchableOpacity>
     </View>
   );
@@ -231,7 +231,7 @@ export function LearnScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={StyleSheet.absoluteFill} collapsable={false}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: BACKGROUND }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: themeColors.background }]} />
       </View>
       <ScrollView
         style={styles.scroll}
@@ -249,15 +249,15 @@ export function LearnScreen() {
         }
       >
         {learnError ? (
-          <View style={styles.errorCard}>
-            <Text style={styles.errorCardTitle}>Can't load data</Text>
-            <Text style={styles.errorCardSubtitle}>Pull to refresh or try again.</Text>
+          <View style={[styles.errorCard, isDark && { backgroundColor: '#7F1D1D', borderColor: '#991B1B' }]}>
+            <Text style={[styles.errorCardTitle, { color: themeColors.textPrimary }]}>Can't load data</Text>
+            <Text style={[styles.errorCardSubtitle, { color: themeColors.textMuted }]}>Pull to refresh or try again.</Text>
             <Pressable style={({ pressed }) => [styles.errorCardButton, pressed && styles.errorCardButtonPressed]} onPress={() => refetchLearn()}>
               <Text style={styles.errorCardButtonText}>Retry</Text>
             </Pressable>
           </View>
         ) : null}
-        <AppHeader
+        <Header
           title="Learn"
           subtitle="Your personalized plan"
           right={headerRight}
@@ -279,32 +279,7 @@ export function LearnScreen() {
             />
           </View>
 
-          <View style={styles.learnSectionWrap}>
-            <ChallengesCard
-              challenges={challenges}
-              onChallengePress={(challengeId) => {
-                // TODO: navigate to challenge detail when screen exists
-              }}
-            />
-          </View>
-          <View style={styles.learnSectionWrap}>
-            <LearningPathsCard
-              paths={paths}
-              onPathPress={(pathId) => navigation.navigate('PathDetail', { pathId })}
-            />
-          </View>
-          <View style={styles.learnSectionWrap}>
-            <LessonsCard
-              lessons={lessons}
-              onLessonPress={(lessonId) => navigation.navigate('LessonDetail', { lessonId })}
-              onLessonLongPress={(lessonId) => {
-                if (markDoneMutation.isPending) return;
-                markDoneMutation.mutate(lessonId);
-              }}
-            />
-          </View>
-
-          <Text style={styles.sectionTitle}>Your Quests</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>Your Quests</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -315,6 +290,7 @@ export function LearnScreen() {
                 key={quest.title}
                 style={[
                   styles.questCard,
+                  { backgroundColor: themeColors.cardBackground },
                   index === 0 && styles.questCardFirst,
                   index === LEARN_QUESTS.length - 1 && styles.questCardLast,
                 ]}
@@ -328,32 +304,32 @@ export function LearnScreen() {
                 <View style={[styles.questIconCircle, { backgroundColor: quest.iconBg }]}>
                   <Text style={styles.questIconEmoji}>{quest.icon}</Text>
                 </View>
-                <Text style={styles.questCardTitle}>{quest.title}</Text>
+                <Text style={[styles.questCardTitle, { color: themeColors.textPrimary }]}>{quest.title}</Text>
                 <View style={[styles.questTag, { backgroundColor: quest.tagBg }]}>
                   <Text style={[styles.questTagText, { color: quest.tagColor }]}>
                     {quest.tag}
                   </Text>
                 </View>
-                <Text style={styles.questSteps}>{quest.steps}</Text>
-                <Text style={styles.questSubtitle}>{quest.subtitle}</Text>
+                <Text style={[styles.questSteps, { color: themeColors.textMuted }]}>{quest.steps}</Text>
+                <Text style={[styles.questSubtitle, { color: colors.accent.primary }]}>{quest.subtitle}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text style={styles.sectionTitle}>Quick Wins · 60 sec each</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>Quick Wins · 60 sec each</Text>
           <View style={styles.quickWinsGrid}>
             {QUICK_WINS_INLINE.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={styles.quickWinCard}
+                style={[styles.quickWinCard, { backgroundColor: themeColors.cardBackground }]}
                 onPress={() =>
                   navigation.navigate('QuickWin', { id: item.id, type: item.type })
                 }
                 activeOpacity={0.9}
               >
                 <Text style={styles.quickWinEmoji}>{item.emoji}</Text>
-                <Text style={styles.quickWinTitle}>{item.title}</Text>
-                <Text style={styles.quickWinArrow}>→</Text>
+                <Text style={[styles.quickWinTitle, { color: themeColors.textPrimary }]}>{item.title}</Text>
+                <Text style={[styles.quickWinArrow, { color: colors.accent.primary }]}>→</Text>
               </TouchableOpacity>
             ))}
           </View>
