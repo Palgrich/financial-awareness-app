@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './config';
+import { useAuthStore } from '../state/authStore';
 
 export const apiDelay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -20,13 +21,20 @@ const REQUEST_TIMEOUT_MS = 8000;
 
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(init?.headers as Record<string, string>),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
       ...init,
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      headers,
     });
     clearTimeout(timeoutId);
     if (!res.ok) {

@@ -49,3 +49,14 @@ export interface Challenge {
   status: ChallengeStatus;
   lastUpdatedAt?: ISOTimestampString;
 }
+
+export interface Transaction {
+  id: string;
+  date: string;
+  merchant: string;
+  category: string;
+  amount: number;
+  type: 'income' | 'expense';
+  accountId: string;
+  isRecurring?: boolean;
+}

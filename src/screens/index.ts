@@ -20,3 +20,5 @@ export { BudgetSetupScreen } from './BudgetSetupScreen';
 export { NotificationsScreen } from './NotificationsScreen';
 export { SettingsScreen } from './SettingsScreen';
 export { MenuScreen } from './MenuScreen';
+export { LoginScreen } from './LoginScreen';
+export { RegisterScreen } from './RegisterScreen';

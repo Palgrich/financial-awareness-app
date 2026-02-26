@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { RootNavigator } from './src/navigation';
 import { useStore } from './src/state/store';
+import { useAuthStore } from './src/state/authStore';
 import { checkHealth } from './src/api/endpoints/health';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colors } from './src/theme/tokens';
@@ -30,6 +31,7 @@ export default function App() {
     let cancelled = false;
     (async () => {
       await hydrate();
+      await useAuthStore.getState().hydrateAuth();
       await runHealthCheck((ok) => {
         if (!cancelled) setApiOkState(ok);
       });

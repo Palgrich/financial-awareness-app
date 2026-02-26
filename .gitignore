@@ -23,6 +23,7 @@ build/
 .env.*.local
 .env.development
 .env.production
+server/.env
 
 # local dev folders
 .cursor/

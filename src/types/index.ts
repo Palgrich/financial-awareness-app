@@ -1,15 +1,4 @@
-export type TransactionType = 'income' | 'expense';
-
-export interface Transaction {
-  id: string;
-  date: string; // ISO date
-  merchant: string;
-  category: string;
-  amount: number;
-  type: TransactionType;
-  accountId: string;
-  isRecurring?: boolean;
-}
+export type { Transaction } from './domain';
 
 export interface Institution {
   id: string;

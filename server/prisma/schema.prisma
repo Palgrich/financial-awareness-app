@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  metrics   MetricSnapshot?
+}
+
+model MetricSnapshot {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id])
+  financialHealth   Int
+  awarenessScore    Int
+  cashControlScore  Int
+  subscriptionScore Int
+  creditScore       Int
+  updatedAt         DateTime @updatedAt
+}

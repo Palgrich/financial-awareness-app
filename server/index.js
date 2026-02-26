@@ -1,5 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import authRouter from './routes/auth.js';
+import { authMiddleware } from './middleware/auth.js';
 
 const app = express();
 app.use(cors());
@@ -40,19 +43,21 @@ const learnData = {
   ],
 };
 
+app.use('/auth', authRouter);
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/metrics', (req, res) => {
+app.get('/metrics', authMiddleware, (req, res) => {
   res.json(metrics);
 });
 
-app.get('/learn', (req, res) => {
+app.get('/learn', authMiddleware, (req, res) => {
   res.json(learnData);
 });
 
-app.post('/learn/lessons/:id/complete', (req, res) => {
+app.post('/learn/lessons/:id/complete', authMiddleware, (req, res) => {
   const lesson = learnData.lessons.find((l) => l.id === req.params.id);
   if (lesson) {
     lesson.status = 'done';
