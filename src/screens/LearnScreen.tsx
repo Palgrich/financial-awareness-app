@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -9,137 +9,42 @@ import {
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Bell, Menu } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppHeader, AppHeaderDark } from '../components';
-import {
-  TodaysMissionCard,
-  ChallengesCard,
-  LearningPathsCard,
-  LessonsCard,
-} from '../components/learn';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LearnStackParamList } from '../navigation/types';
 import { useAuthStore } from '../state/authStore';
-import { learnUserData, type LearnUserData as LearnUserDataType } from '../data/learnUserData';
-import { getQuestProgress, getStreak } from '../data/learnQuestStorage';
-import type { QuestProgressState } from '../data/learnQuestStorage';
-import { getLearnData, markLessonCompleted } from '../api/endpoints/learn';
-import { queryKeys } from '../api/queryKeys';
-import { colors } from '../theme/tokens';
+import { getStreak } from '../data/learnQuestStorage';
 import { useTheme } from '../theme/useTheme';
-import type { Challenge, LearningPath, Lesson } from '../types/domain';
-import type { ChallengeRow, PathRow, LessonRow } from '../components/learn';
-
-const LEARN_QUESTS = [
-  {
-    title: 'Subscription Cleanse',
-    icon: '✂️',
-    iconBg: '#EDE9FE',
-    tag: '🔴 Urgent for you',
-    tagBg: '#FEE2E2',
-    tagColor: '#DC2626',
-    steps: '0/4 steps',
-    subtitle: 'Save ~$86/month',
-  },
-  {
-    title: 'Credit Card Basics',
-    icon: '💳',
-    iconBg: '#DBEAFE',
-    tag: '🔴 Urgent for you',
-    tagBg: '#FEE2E2',
-    tagColor: '#DC2626',
-    steps: '0/5 steps',
-    subtitle: 'Protect your credit score',
-  },
-  {
-    title: 'Emergency Fund 101',
-    icon: '🏦',
-    iconBg: '#D1FAE5',
-    tag: '⚪ Start when ready',
-    tagBg: '#F3F4F6',
-    tagColor: '#6B7280',
-    steps: '0/3 steps',
-    subtitle: 'Build a safety net',
-  },
-] as const;
-
-const QUICK_WINS_INLINE = [
-  { id: 'creditScore', emoji: '📊', title: 'What is a credit score?', type: 'quiz' as const },
-  { id: 'thirtyRule', emoji: '💳', title: '30% rule explained', type: 'quiz' as const },
-  { id: 'paymentReminder', emoji: '🔔', title: 'Set a payment reminder', type: 'guide' as const },
-  { id: 'bankStatement', emoji: '🧾', title: 'Read your bank statement', type: 'quiz' as const },
-];
-
-const MONEY_FACTS = [
-  'People who track their spending save an average of $200 more per month than those who don\'t.',
-  'Paying just $10 extra on a $500 credit card balance saves $150 in interest.',
-  'The average American has 4.5 subscriptions they don\'t actively use.',
-  'Setting up autopay eliminates late fees for 90% of people who try it.',
-  'People with 750+ credit scores pay $1,500 less on car loans on average.',
-  'Having even $500 in emergency savings reduces financial stress significantly.',
-  'Cancelling one unused $15/month subscription saves $180/year.',
-];
-
-const moneyFactStyles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  divider: {
-    height: 1,
-    marginBottom: 12,
-  },
-  text: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
-});
-
-function MoneyFactCard() {
-  const { isDark, colors: themeColors } = useTheme();
-  const dayIndex = new Date().getDay();
-  const fact = MONEY_FACTS[dayIndex] ?? MONEY_FACTS[0];
-  const cardBg = isDark ? themeColors.cardBackground : '#FFFBEB';
-  const borderColor = isDark ? themeColors.borderColor : '#FDE68A';
-  const textColor = themeColors.textPrimary;
-  return (
-    <View style={[moneyFactStyles.card, { backgroundColor: cardBg, borderColor }]}>
-      <Text style={[moneyFactStyles.title, { color: textColor }]}>💡 Did you know?</Text>
-      <View style={[moneyFactStyles.divider, { backgroundColor: borderColor }]} />
-      <Text style={[moneyFactStyles.text, { color: textColor }]}>{fact}</Text>
-    </View>
-  );
-}
 
 type Nav = NativeStackNavigationProp<LearnStackParamList, 'LearnHome'>;
 
-function toChallengeRows(challenges: Challenge[]): ChallengeRow[] {
-  return challenges.map((c) => ({ id: c.id, title: c.title, status: c.status }));
-}
+const GRADIENT_COLORS = ['#1E1B4B', '#3730A3', '#5B4FE8'] as const;
 
-function toPathRows(paths: LearningPath[]): PathRow[] {
-  return paths.map((p) => ({ id: p.id, title: p.title, lessonCount: p.lessonsCount }));
-}
+const todayLesson = {
+  emoji: '💳',
+  title: 'Why your credit card is costing you more than you think',
+  description: 'Personalized for you — Chase Sapphire payment due in 2 days.',
+  minutes: 2,
+  category: 'Credit',
+};
 
-function toLessonRows(lessons: Lesson[]): LessonRow[] {
-  return lessons.map((l) => ({
-    id: l.id,
-    title: l.title,
-    durationMin: l.minutes,
-    progress: l.status === 'done' ? 'completed' : l.status,
-  }));
-}
+const learningPaths = [
+  { id: '1', emoji: '💳', name: 'Credit', done: 2, total: 5, active: true },
+  { id: '2', emoji: '🔄', name: 'Subscriptions', done: 0, total: 4, active: false },
+  { id: '3', emoji: '💰', name: 'Spending', done: 3, total: 4, active: false },
+  { id: '4', emoji: '📈', name: 'Investing', done: 0, total: 6, active: false },
+];
+
+const quickWins = [
+  { id: '1', emoji: '🔄', title: 'How subscriptions drain wealth', urgent: true },
+  { id: '2', emoji: '📊', title: 'What is a credit score?', urgent: false },
+  { id: '3', emoji: '🏦', title: 'Read your bank statement', urgent: false },
+  { id: '4', emoji: '💡', title: '30% rule explained', urgent: false },
+];
 
 export function LearnScreen() {
   const insets = useSafeAreaInsets();
@@ -148,74 +53,31 @@ export function LearnScreen() {
   const { isDark, colors: themeColors } = useTheme();
   const { user } = useAuthStore();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
-  const Header = isDark ? AppHeaderDark : AppHeader;
-  const cardBg = isDark ? '#1E293B' : '#FFFFFF';
-  const cardDarkBorder = isDark ? { borderWidth: 1 as const, borderColor: 'rgba(255,255,255,0.08)' as const } : null;
-  const sectionTitleColor = isDark ? '#F8FAFC' : '#0F172A';
-  const queryClient = useQueryClient();
-  const { data: learnData, isLoading: learnLoading, isError: learnError, refetch: refetchLearn } = useQuery({
-    queryKey: queryKeys.learn(),
-    queryFn: getLearnData,
-  });
-
-  const markDoneMutation = useMutation({
-    mutationFn: (lessonId: string) => markLessonCompleted(lessonId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.learn() }),
-  });
-
-  const challenges: ChallengeRow[] = useMemo(
-    () => (learnLoading ? [] : toChallengeRows(learnData?.challenges ?? [])),
-    [learnData?.challenges, learnLoading]
-  );
-  const paths: PathRow[] = useMemo(
-    () => (learnLoading ? [] : toPathRows(learnData?.paths ?? [])),
-    [learnData?.paths, learnLoading]
-  );
-  const lessons: LessonRow[] = useMemo(
-    () => (learnLoading ? [] : toLessonRows(learnData?.lessons ?? [])),
-    [learnData?.lessons, learnLoading]
-  );
-
+  const [streak, setStreak] = useState(3);
   const [refreshing, setRefreshing] = useState(false);
-  const [progress, setProgress] = useState<QuestProgressState>({
-    subscriptionCleanse: 0,
-    creditCardBasics: 0,
-    emergencyFund: 0,
-  });
-  const [streak, setStreak] = useState(learnUserData.streak);
 
-  const data: LearnUserDataType = {
-    ...learnUserData,
-    streak,
-    questProgress: progress,
-  };
-
-  const loadStorage = useCallback(async () => {
-    const [p, s] = await Promise.all([getQuestProgress(), getStreak()]);
-    setProgress(p);
-    setStreak(s > 0 ? s : learnUserData.streak);
+  useEffect(() => {
+    getStreak().then((s) => setStreak(s > 0 ? s : 3));
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.learn() }),
-      loadStorage(),
-    ]);
+    const s = await getStreak();
+    setStreak(s > 0 ? s : 3);
     setRefreshing(false);
-  }, [queryClient, loadStorage]);
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadStorage();
-    }, [loadStorage])
-  );
+  const Header = isDark ? AppHeaderDark : AppHeader;
+  const textPrimary = isDark ? '#F8FAFC' : '#0F172A';
+  const textMuted = isDark ? '#94A3B8' : '#64748B';
+  const cardBg = isDark ? '#1E293B' : '#FFFFFF';
+  const cardBorder = isDark ? { borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' as const } : {};
 
   const headerRight = (
     <View style={styles.headerRight}>
       <View style={[styles.streakPill, isDark && { backgroundColor: themeColors.cardBackground }]}>
         <Text style={styles.streakEmoji}>🔥</Text>
-        <Text style={[styles.streakText, { color: sectionTitleColor }]}>{streak} day streak</Text>
+        <Text style={[styles.streakText, { color: textPrimary }]}>{streak} day streak</Text>
       </View>
       <TouchableOpacity
         onPress={() => navigation.navigate('Notifications')}
@@ -254,93 +116,118 @@ export function LearnScreen() {
           />
         }
       >
-        {learnError ? (
-          <View style={[styles.errorCard, isDark && { backgroundColor: '#7F1D1D', borderColor: '#991B1B' }]}>
-            <Text style={[styles.errorCardTitle, { color: themeColors.textPrimary }]}>Can't load data</Text>
-            <Text style={[styles.errorCardSubtitle, { color: themeColors.textMuted }]}>Pull to refresh or try again.</Text>
-            <Pressable style={({ pressed }) => [styles.errorCardButton, pressed && styles.errorCardButtonPressed]} onPress={() => refetchLearn()}>
-              <Text style={styles.errorCardButtonText}>Retry</Text>
-            </Pressable>
-          </View>
-        ) : null}
-        <Header
-          title={`Hi, ${firstName} 👋`}
-          right={headerRight}
-        />
-        <View style={styles.main}>
-          <View style={[styles.missionCardWrap, { backgroundColor: cardBg, borderRadius: 20 }, cardDarkBorder]}>
-            <TodaysMissionCard
-              data={data}
-            onCancelGuide={(serviceName) => {
-              navigation.navigate('QuestSubscriptionCleanse', {
-                step: 1,
-                serviceName,
-              });
-            }}
-            onPayNow={() => {
-              // Could navigate to payment flow or show modal
-            }}
-              onIUseIt={() => {}}
-            />
-          </View>
+        <Header title={`Hi, ${firstName} 👋`} right={headerRight} />
 
-          <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Your Quests</Text>
+        <View style={styles.main}>
+          {/* ZONE 1 — Today's lesson card */}
+          <LinearGradient
+            colors={[...GRADIENT_COLORS]}
+            style={styles.lessonCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.decorativeCircleTopRight} />
+            <View style={styles.decorativeCircleBottomLeft} />
+            <View style={styles.lessonTopRow}>
+              <Text style={styles.lessonLabel}>TODAY'S LESSON</Text>
+              <View style={styles.lessonStreakBadge}>
+                <Text style={styles.lessonStreakText}>🔥 Day {streak}</Text>
+              </View>
+            </View>
+            <Text style={styles.lessonEmoji}>{todayLesson.emoji}</Text>
+            <Text style={styles.lessonTitle}>{todayLesson.title}</Text>
+            <Text style={styles.lessonDescription}>{todayLesson.description}</Text>
+            <View style={styles.lessonFooter}>
+              <Text style={styles.lessonMeta}>
+                {todayLesson.minutes} min · {todayLesson.category}
+              </Text>
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={() => navigation.navigate('LessonDetail', { lessonId: 'today' })}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.startButtonText}>Start →</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+
+          {/* ZONE 2 — Your path */}
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: textPrimary }]}>Your path</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('LearnHome')} activeOpacity={0.7}>
+              <Text style={styles.seeAllLink}>See all</Text>
+            </TouchableOpacity>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.questsScrollContent}
+            contentContainerStyle={styles.pathScrollContent}
           >
-            {LEARN_QUESTS.map((quest, index) => (
+            {learningPaths.map((path) => (
               <TouchableOpacity
-                key={quest.title}
+                key={path.id}
                 style={[
-                  styles.questCard,
-                  { backgroundColor: cardBg },
-                  cardDarkBorder,
-                  index === 0 && styles.questCardFirst,
-                  index === LEARN_QUESTS.length - 1 && styles.questCardLast,
+                  styles.pathCard,
+                  {
+                    backgroundColor: path.active ? 'rgba(91,79,232,0.1)' : cardBg,
+                    borderWidth: 1,
+                    borderColor: path.active ? 'rgba(91,79,232,0.4)' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'),
+                  },
                 ]}
-                onPress={() => {
-                  if (quest.title === 'Subscription Cleanse') {
-                    navigation.navigate('QuestSubscriptionCleanse', { step: 1 });
-                  }
-                }}
-                activeOpacity={0.9}
+                activeOpacity={0.8}
               >
-                <View style={[styles.questIconCircle, { backgroundColor: quest.iconBg }]}>
-                  <Text style={styles.questIconEmoji}>{quest.icon}</Text>
+                <Text style={styles.pathEmoji}>{path.emoji}</Text>
+                <Text style={[styles.pathName, { color: textPrimary }]} numberOfLines={1}>
+                  {path.name}
+                </Text>
+                <View style={[styles.pathBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                  <View
+                    style={[
+                      styles.pathBarFill,
+                      { width: `${(path.done / path.total) * 100}%` },
+                    ]}
+                  />
                 </View>
-                <Text style={[styles.questCardTitle, { color: sectionTitleColor }]}>{quest.title}</Text>
-                <View style={[styles.questTag, { backgroundColor: quest.tagBg }]}>
-                  <Text style={[styles.questTagText, { color: quest.tagColor }]}>
-                    {quest.tag}
-                  </Text>
-                </View>
-                <Text style={[styles.questSteps, { color: isDark ? '#94A3B8' : '#64748B' }]}>{quest.steps}</Text>
-                <Text style={[styles.questSubtitle, { color: colors.accent.primary }]}>{quest.subtitle}</Text>
+                <Text style={[styles.pathDone, { color: textMuted }]}>
+                  {path.done}/{path.total} done
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Quick Wins · 60 sec each</Text>
+          {/* ZONE 3 — Quick wins grid */}
+          <Text style={[styles.sectionTitleStandalone, { color: textPrimary }]}>
+            Quick wins · 60 sec
+          </Text>
           <View style={styles.quickWinsGrid}>
-            {QUICK_WINS_INLINE.map((item) => (
+            {quickWins.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.quickWinCard, { backgroundColor: cardBg }, cardDarkBorder]}
+                style={[
+                  styles.quickWinCard,
+                  { backgroundColor: cardBg },
+                  cardBorder,
+                  item.urgent && styles.quickWinCardUrgent,
+                ]}
                 onPress={() =>
-                  navigation.navigate('QuickWin', { id: item.id, type: item.type })
+                  navigation.navigate('QuickWin', { id: item.id, type: 'guide' })
                 }
-                activeOpacity={0.9}
+                activeOpacity={0.8}
               >
+                {item.urgent ? (
+                  <Text style={styles.quickWinUrgentTag}>⚡ URGENT FOR YOU</Text>
+                ) : null}
                 <Text style={styles.quickWinEmoji}>{item.emoji}</Text>
-                <Text style={[styles.quickWinTitle, { color: sectionTitleColor }]}>{item.title}</Text>
-                <Text style={[styles.quickWinArrow, { color: colors.accent.primary }]}>→</Text>
+                <Text style={[styles.quickWinTitle, { color: textPrimary }]} numberOfLines={2}>
+                  {item.title}
+                </Text>
+                <View style={styles.quickWinFooter}>
+                  <Text style={[styles.quickWinDuration, { color: textMuted }]}>60 sec</Text>
+                  <Text style={styles.quickWinArrow}>→</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
-
-          <MoneyFactCard />
         </View>
       </ScrollView>
     </View>
@@ -366,150 +253,197 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   streakEmoji: { fontSize: 14 },
-  streakText: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
+  streakText: { fontSize: 13, fontWeight: '600' },
   headerIcon: { padding: 4 },
   main: {
-    paddingHorizontal: 0,
-    gap: 0,
     paddingTop: 24,
   },
-  missionCardWrap: {
+  lessonCard: {
     marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 20,
     overflow: 'hidden',
-    padding: 0,
+    marginBottom: 24,
   },
-  learnSectionWrap: {
+  decorativeCircleTopRight: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 80,
+  },
+  decorativeCircleBottomLeft: {
+    position: 'absolute',
+    bottom: -60,
+    left: -20,
+    width: 200,
+    height: 200,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 100,
+  },
+  lessonTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  lessonLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 1.2,
+  },
+  lessonStreakBadge: {
+    backgroundColor: 'rgba(251,146,60,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  lessonStreakText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FB923C',
+  },
+  lessonEmoji: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  lessonTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 24,
+    marginBottom: 6,
+  },
+  lessonDescription: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 16,
+  },
+  lessonFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  lessonMeta: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  startButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  startButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3730A3',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginHorizontal: 16,
-    marginTop: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
-    marginTop: 24,
-    marginBottom: 12,
-    marginHorizontal: 16,
   },
-  questsScrollContent: {
-    paddingVertical: 4,
+  seeAllLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5B4FE8',
   },
-  questCard: {
-    width: 185,
-    marginRight: 12,
-    backgroundColor: '#FFFFFF',
+  pathScrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 10,
+    flexDirection: 'row',
+  },
+  pathCard: {
+    width: 110,
+    flexShrink: 0,
     borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    padding: 14,
   },
-  questCardFirst: {
-    marginLeft: 16,
+  pathEmoji: {
+    fontSize: 24,
+    marginBottom: 8,
   },
-  questCardLast: {
-    marginRight: 16,
+  pathName: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  questIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  pathBarBg: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 6,
   },
-  questIconEmoji: {
-    fontSize: 20,
+  pathBarFill: {
+    height: '100%',
+    backgroundColor: '#5B4FE8',
+    borderRadius: 2,
   },
-  questCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginTop: 10,
-    color: '#1a1a1a',
-  },
-  questTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-    marginTop: 6,
-    alignSelf: 'flex-start',
-  },
-  questTagText: {
+  pathDone: {
     fontSize: 11,
   },
-  questSteps: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-  questSubtitle: {
-    fontSize: 12,
-    color: '#6C63FF',
-    marginTop: 2,
+  sectionTitleStandalone: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    marginTop: 8,
   },
   quickWinsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 8,
     marginHorizontal: 16,
+    paddingBottom: 24,
   },
   quickWinCard: {
     width: '47%',
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    padding: 14,
+  },
+  quickWinCardUrgent: {
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.3)',
+    backgroundColor: 'rgba(239,68,68,0.05)',
+  },
+  quickWinUrgentTag: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#EF4444',
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   quickWinEmoji: {
-    fontSize: 28,
-    marginBottom: 10,
+    fontSize: 24,
+    marginBottom: 8,
   },
   quickWinTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a1a',
+    lineHeight: 18,
     marginBottom: 8,
   },
+  quickWinFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quickWinDuration: {
+    fontSize: 11,
+  },
   quickWinArrow: {
-    fontSize: 18,
-    color: '#6C63FF',
-    alignSelf: 'flex-end',
-  },
-  errorCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  errorCardTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 4,
-  },
-  errorCardSubtitle: {
-    fontSize: 14,
-    color: colors.text.muted,
-    marginBottom: 12,
-  },
-  errorCardButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.accent.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  errorCardButtonPressed: { opacity: 0.8 },
-  errorCardButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text.white,
+    fontWeight: '700',
+    color: '#5B4FE8',
   },
 });
