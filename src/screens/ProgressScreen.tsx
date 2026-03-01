@@ -17,9 +17,12 @@ import { Bell, Menu } from 'lucide-react-native';
 import {
   AppHeader,
   AppHeaderDark,
+  FinancialPulseCard,
   FinancialWeatherCard,
   MetricCard,
   CashControlCard,
+  PulseTiles,
+  TodaysActionCard,
 } from '../components';
 import { colors } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
@@ -174,6 +177,46 @@ export function ProgressScreen() {
         ? 'moderate'
         : 'high';
 
+  // FinancialPulseCard props
+  const healthPercent = metrics?.financialHealth ?? 70;
+  const pulseStatus =
+    healthPercent < 40
+      ? 'Critical'
+      : healthPercent < 55
+        ? 'At Risk'
+        : healthPercent < 70
+          ? 'Stable'
+          : healthPercent < 85
+            ? 'Good'
+            : 'Thriving';
+  const topAction = weather.actions[0];
+  const totalActions = weather.actions.length;
+
+  // PulseTiles props
+  const learnData = undefined as
+    | { lessons: Array<{ status: string; title?: string; minutes?: number }> }
+    | undefined;
+  const cashBalance = userData?.availableBalance ?? 27520;
+  const cashStatus =
+    cashBalance > 5000 ? 'good' : cashBalance > 1000 ? 'moderate' : 'high';
+  const completedLessons =
+    learnData?.lessons.filter((l) => l.status === 'done').length ?? 6;
+  const learnStatus =
+    completedLessons > 10 ? 'good' : completedLessons > 3 ? 'moderate' : 'high';
+  const subScore = metrics?.subscriptionScore ?? 45;
+  const subStatus =
+    subScore >= 70 ? 'good' : subScore >= 50 ? 'moderate' : 'high';
+
+  // TodaysActionCard props
+  const firstIncompleteLesson = learnData?.lessons.find(
+    (l) => l.status !== 'done'
+  );
+  const todayTitle =
+    firstIncompleteLesson?.title ?? 'Review your subscriptions today';
+  const todaySubtitle = firstIncompleteLesson
+    ? `${firstIncompleteLesson.minutes} min read · Start now`
+    : 'Tap to start';
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <LinearGradient
@@ -213,109 +256,45 @@ export function ProgressScreen() {
           right={headerRight}
         />
         <View style={styles.main}>
-          <FinancialWeatherCard
-            weather={weather}
-            onPress={() => navigation.navigate('HealthBreakdown')}
-            onActionPress={(actionId) => {
-              if (actionId === 'subscriptions') navigation.navigate('ProgressSubscriptionList');
-              else if (actionId === 'cash-control') navigation.navigate('TransactionsHome');
-              else if (actionId === 'credit-payment') navigation.navigate('CreditCardDetails');
-              else if (actionId === 'payday-pace') navigation.navigate('TransactionsHome');
-              else if (actionId === 'awareness')
-                (navigation.getParent() as any)?.navigate('Learn', { screen: 'LearnHome' });
+          <FinancialPulseCard
+            healthPercent={healthPercent}
+            status={pulseStatus}
+            description={weather.description}
+            topAction={topAction}
+            totalActions={totalActions}
+            onSeeAll={() => {
+              /* TODO: show all actions modal */
+            }}
+            onActionPress={() => {
+              /* TODO: navigate based on action */
             }}
           />
 
-          <CashControlCard
-            expensesThisMonth={userData.expensesThisMonth}
-            expensesChangePct={
-              userData.expensesLastMonth > 0
-                ? ((userData.expensesThisMonth - userData.expensesLastMonth) /
-                    userData.expensesLastMonth) *
-                  100
-                : null
+          <PulseTiles
+            cash={{ balance: cashBalance, status: cashStatus }}
+            learn={{ completed: completedLessons, status: learnStatus }}
+            subscriptions={{
+              monthly: userData?.subscriptionMonthly ?? 287,
+              count: userData?.subscriptionCount ?? 16,
+              status: subStatus,
+            }}
+            onCashPress={() =>
+              (navigation.getParent() as any)?.navigate('Transactions')
             }
-            balanceCurrent={userData.currentBalance}
-            balanceChangePct={null}
-            status={cashControlStatus}
-            filledSegments={scoreToFilled(metrics?.cashControlScore ?? 0)}
-            weeklySpending={userData.weeklySpending}
-            topCategories={userData.topCategories}
-            onPress={() => navigation.navigate('TransactionsHome')}
-            onCategoriesPress={() => navigation.navigate('TransactionsHome')}
-          />
-
-          <MetricCard
-            title="Financial Awareness"
-            value={
-              metricsLoading
-                ? '--'
-                : `${userData.financialAwareness.lessonsCompleted} / ${userData.financialAwareness.totalLessons} lessons completed`
+            onLearnPress={() =>
+              (navigation.getParent() as any)?.navigate('Learn')
             }
-            status={statusToType(userData.healthBreakdown.financialAwareness.status)}
-            filledSegments={scoreToFilled(metrics?.awarenessScore ?? 0)}
-            variant="awareness"
-            levelSubtitle={userData.financialAwareness.levelName}
-            nextLessonTitle={nextLesson?.title}
-            nextLessonMeta={nextLesson?.meta}
-            onNextLessonPress={() =>
-              (navigation.getParent() as any)?.navigate('Learn', {
-                screen: 'LearnHome',
-              })
+            onSubscriptionsPress={() =>
+              (navigation.getParent() as any)?.navigate('Subscriptions')
             }
           />
 
-          <MetricCard
-            title="Subscription Load"
-            value={
-              metricsLoading
-                ? '--'
-                : `$${userData.subscriptionMonthly.toFixed(2)} / month`
+          <TodaysActionCard
+            title={todayTitle}
+            subtitle={todaySubtitle}
+            onPress={() =>
+              (navigation.getParent() as any)?.navigate('Learn')
             }
-            status={statusToType(userData.subscriptionStatus)}
-            description={`${userData.subscriptionCount} active`}
-            filledSegments={scoreToFilled(metrics?.subscriptionScore ?? 0)}
-            variant="subscription"
-            yearlyText={`That's $${userData.subscriptionYearly.toLocaleString()} / year`}
-            secondaryActionLabel="See all subscriptions"
-            primaryActionLabel="Start Cleanse"
-            onSecondaryAction={() =>
-              navigation.navigate('ProgressSubscriptionList')
-            }
-            onPrimaryAction={() =>
-              (navigation.getParent() as any)?.navigate('Learn', {
-                screen: 'QuestSubscriptionCleanse',
-                params: { step: 1 },
-              })
-            }
-          />
-
-          <MetricCard
-            title="Credit Card Payments"
-            value={
-              metricsLoading ? '--' : `$${userData.lastStatementBalance}`
-            }
-            status={statusToType(userData.creditCardStatus)}
-            description="Last statement"
-            filledSegments={scoreToFilled(metrics?.creditScore ?? 0)}
-            variant="credit"
-            actionLabel="Details"
-            onPress={() => navigation.navigate('CreditCardDetails')}
-            urgencyBanner={
-              userData.daysUntilDue <= 7 && userData.daysUntilDue >= 0
-                ? {
-                    text: `Payment due in ${userData.daysUntilDue} days`,
-                    secondLine: `$${userData.minimumDue.toFixed(2)} minimum due`,
-                    onPayNow: () => {},
-                  }
-                : undefined
-            }
-            dueDateText={
-              userData.daysUntilDue > 7
-                ? `Next due date: ${userData.nextDueDate} · Estimated: ~$${userData.estimatedPayment}`
-                : undefined
-            }
-            paymentHistory={userData.paymentHistory}
           />
         </View>
       </ScrollView>
