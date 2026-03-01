@@ -36,7 +36,7 @@ const learningPaths = [
   { id: '1', emoji: '💳', name: 'Credit', done: 2, total: 5, active: true },
   { id: '2', emoji: '🔄', name: 'Subscriptions', done: 0, total: 4, active: false },
   { id: '3', emoji: '💰', name: 'Spending', done: 3, total: 4, active: false },
-  { id: '4', emoji: '📈', name: 'Investing', done: 0, total: 6, active: false },
+  { id: '4', emoji: '🏦', name: 'Savings', done: 0, total: 4, active: false },
 ];
 
 const quickWins = [
@@ -176,7 +176,7 @@ export function LearnScreen() {
                 ]}
                 activeOpacity={0.8}
               >
-                <Text style={styles.pathEmoji}>{path.emoji}</Text>
+                <Text style={{ fontSize: 24 }}>{path.emoji}</Text>
                 <Text style={[styles.pathName, { color: textPrimary }]} numberOfLines={1}>
                   {path.name}
                 </Text>

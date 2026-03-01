@@ -100,6 +100,7 @@ export function LiquidGlassTabBar({
           bottom: 0,
           height: totalHeight,
           paddingBottom: bottomInset,
+          overflow: 'hidden',
         },
       ]}
       pointerEvents="box-none"

@@ -159,6 +159,13 @@ export function SubscriptionsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+      <TouchableOpacity
+        style={styles.backLink}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.backLinkText}>← Back</Text>
+      </TouchableOpacity>
       <Header title="Subscriptions" subtitle="Your recurring charges" />
 
       <ScrollView
@@ -296,6 +303,8 @@ export function SubscriptionsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  backLink: { paddingHorizontal: 16, paddingVertical: 8, marginBottom: 4 },
+  backLinkText: { fontSize: 13, color: '#5B4FE8', fontWeight: '500' },
   scroll: { flex: 1 },
   content: { paddingBottom: 24 },
   purpleCard: {
