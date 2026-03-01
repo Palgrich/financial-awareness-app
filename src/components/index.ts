@@ -43,3 +43,13 @@ export type { PaydayStatusCardProps } from './PaydayStatusCard';
 export { WeeklySparkline } from './WeeklySparkline';
 export type { WeeklySparklineProps } from './WeeklySparkline';
 export { LiquidGlassTabBar } from './LiquidGlassTabBar';
+export { FinancialPulseCard } from './FinancialPulseCard';
+export type {
+  FinancialPulseCardProps,
+  FinancialPulseStatus,
+  TopActionItem,
+} from './FinancialPulseCard';
+export { PulseTiles } from './PulseTiles';
+export type { PulseTilesProps, TileStatus } from './PulseTiles';
+export { TodaysActionCard } from './TodaysActionCard';
+export type { TodaysActionCardProps } from './TodaysActionCard';
