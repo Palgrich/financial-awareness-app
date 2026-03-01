@@ -22,6 +22,7 @@ import {
 } from '../components/learn';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LearnStackParamList } from '../navigation/types';
+import { useAuthStore } from '../state/authStore';
 import { learnUserData, type LearnUserData as LearnUserDataType } from '../data/learnUserData';
 import { getQuestProgress, getStreak } from '../data/learnQuestStorage';
 import type { QuestProgressState } from '../data/learnQuestStorage';
@@ -145,6 +146,8 @@ export function LearnScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<Nav>();
   const { isDark, colors: themeColors } = useTheme();
+  const { user } = useAuthStore();
+  const firstName = user?.name?.split(' ')[0] ?? 'there';
   const Header = isDark ? AppHeaderDark : AppHeader;
   const queryClient = useQueryClient();
   const { data: learnData, isLoading: learnLoading, isError: learnError, refetch: refetchLearn } = useQuery({
@@ -258,8 +261,7 @@ export function LearnScreen() {
           </View>
         ) : null}
         <Header
-          title="Learn"
-          subtitle="Your personalized plan"
+          title={`Hi, ${firstName} 👋`}
           right={headerRight}
         />
         <View style={styles.main}>

@@ -27,7 +27,7 @@ function StatusDot({ status }: { status: TileStatus }) {
 const TILE_EMOJIS = { cash: '💰', learn: '📚', subscriptions: '🔄' } as const;
 
 function formatMoney(n: number) {
-  return `$${n.toFixed(0)}`;
+  return `$${n.toLocaleString('en-US')}`;
 }
 
 export function PulseTiles({

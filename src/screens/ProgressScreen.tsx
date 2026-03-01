@@ -28,6 +28,7 @@ import { colors } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { DashboardStackParamList } from '../navigation/types';
+import { useAuthStore } from '../state/authStore';
 import { useProgressStore } from '../state/progressStore';
 import type { CashControlStatus } from '../domain/cashControl';
 import { getMetrics } from '../api/endpoints/metrics';
@@ -35,13 +36,6 @@ import { queryKeys } from '../api/queryKeys';
 import { getFinancialWeather } from '../utils/financialWeather';
 
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h >= 6 && h < 12) return 'Good morning 👋';
-  if (h >= 12 && h < 18) return 'Good afternoon 👋';
-  return 'Good evening 👋';
-}
 
 function scoreToFilled(score: number): number {
   if (score <= 20) return 1;
@@ -87,7 +81,9 @@ export function ProgressScreen() {
     queryFn: getMetrics,
   });
 
+  const { user } = useAuthStore();
   const userData = useProgressStore((s) => s.userData);
+  const firstName = user?.name?.split(' ')[0] ?? 'there';
   const notificationsViewedAt = useProgressStore((s) => s.notificationsViewedAt);
   const loadUserData = useProgressStore((s) => s.loadUserData);
   const loadNotificationsViewed = useProgressStore((s) => s.loadNotificationsViewed);
@@ -168,7 +164,6 @@ export function ProgressScreen() {
   );
 
   const Header = isDark ? AppHeaderDark : AppHeader;
-  const greeting = getGreeting();
   const nextLesson = useMemo(() => getNextLesson(userData), [userData]);
   const cashControlStatus: CashControlStatus =
     userData.cashControlStatus === 'Good'
@@ -250,9 +245,7 @@ export function ProgressScreen() {
           </View>
         ) : null}
         <Header
-          greeting={greeting}
-          title="Progress"
-          subtitle="Your money clarity"
+          title={`Hi, ${firstName} 👋`}
           right={headerRight}
         />
         <View style={styles.main}>
