@@ -26,9 +26,11 @@ const ICON_LABEL_GAP = 5;
 const TAB_ITEM_PADDING_VERTICAL = 12;
 const BORDER_RADIUS = 28;
 
-const ACTIVE_COLOR = '#5B8CFF';
+const ACTIVE_COLOR = '#5B4FE8';
 const INACTIVE_COLOR = 'rgba(30, 41, 59, 0.9)';
+const INACTIVE_COLOR_DARK = 'rgba(255,255,255,0.5)';
 const PILL_BG = 'rgba(255, 255, 255, 0.85)';
+const PILL_BG_DARK = 'rgba(255,255,255,0.12)';
 const PILL_BORDER = 'rgba(255, 255, 255, 0.9)';
 
 const TAB_CONFIG = [
@@ -156,8 +158,8 @@ export function LiquidGlassTabBar({
                   width: pillWidth,
                   height: PILL_HEIGHT,
                   borderRadius: 999,
-                  backgroundColor: PILL_BG,
-                  borderWidth: 1,
+                  backgroundColor: isDark ? PILL_BG_DARK : PILL_BG,
+                  borderWidth: isDark ? 0 : 1,
                   borderColor: PILL_BORDER,
                   top: pillTop,
                   transform: [{ translateX: pillTranslateX }],
@@ -188,6 +190,7 @@ export function LiquidGlassTabBar({
               }
             };
 
+            const iconColor = focused ? ACTIVE_COLOR : (isDark ? INACTIVE_COLOR_DARK : INACTIVE_COLOR);
             return (
               <Pressable
                 key={route.key}
@@ -199,13 +202,13 @@ export function LiquidGlassTabBar({
               >
                 <Icon
                   size={ICON_SIZE}
-                  color={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
+                  color={iconColor}
                 />
                 <Text
                   style={[
                     styles.label,
                     {
-                      color: focused ? ACTIVE_COLOR : INACTIVE_COLOR,
+                      color: iconColor,
                       fontWeight: focused ? '600' : '500',
                     },
                   ]}

@@ -33,6 +33,8 @@ export interface FinancialPulseCardProps {
   onActionPress?: () => void;
 }
 
+const RING_BG_STROKE = 'rgba(255,255,255,0.15)';
+
 function PulseRing({ percent }: { percent: number }) {
   const strokeDashoffset = RING_CIRCUMFERENCE - (percent / 100) * RING_CIRCUMFERENCE;
   return (
@@ -41,7 +43,15 @@ function PulseRing({ percent }: { percent: number }) {
         cx={RING_SIZE / 2}
         cy={RING_SIZE / 2}
         r={RING_R}
-        fill="transparent"
+        fill="none"
+        stroke={RING_BG_STROKE}
+        strokeWidth={6}
+      />
+      <Circle
+        cx={RING_SIZE / 2}
+        cy={RING_SIZE / 2}
+        r={RING_R}
+        fill="none"
         stroke={RING_STROKE}
         strokeWidth={6}
         strokeDasharray={RING_CIRCUMFERENCE}
@@ -69,6 +79,8 @@ export function FinancialPulseCard({
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
+      <View style={styles.decorativeCircleTopRight} />
+      <View style={styles.decorativeCircleBottomLeft} />
       <View style={styles.topRow}>
         <Text style={styles.pulseLabel}>FINANCIAL PULSE</Text>
         <View style={styles.statusPill}>
@@ -94,6 +106,7 @@ export function FinancialPulseCard({
 
       {topAction ? (
         <>
+          <View style={styles.divider} />
           <TouchableOpacity
             style={styles.actionRow}
             onPress={onActionPress}
@@ -208,6 +221,30 @@ const styles = StyleSheet.create({
   },
   seeAllRow: {
     paddingVertical: 8,
+    alignItems: 'flex-start',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginVertical: 16,
+  },
+  decorativeCircleTopRight: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 80,
+  },
+  decorativeCircleBottomLeft: {
+    position: 'absolute',
+    bottom: -60,
+    left: -20,
+    width: 200,
+    height: 200,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 100,
   },
   seeAllText: {
     fontSize: 13,
