@@ -27,7 +27,7 @@ function StatusDot({ status }: { status: TileStatus }) {
 const TILE_EMOJIS = { cash: '💰', learn: '📚', subscriptions: '🔄' } as const;
 
 function formatMoney(n: number) {
-  return `$${n.toLocaleString('en-US')}`;
+  return `$${Math.round(n).toLocaleString('en-US')}`;
 }
 
 export function PulseTiles({
@@ -46,7 +46,7 @@ export function PulseTiles({
   return (
     <View style={styles.row}>
       <TouchableOpacity
-        style={[styles.tile, { backgroundColor: tileBg }]}
+        style={[styles.tile, { backgroundColor: tileBg }, isDark && styles.tileDarkBorder]}
         onPress={onCashPress}
         activeOpacity={0.7}
       >
@@ -59,7 +59,7 @@ export function PulseTiles({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.tile, { backgroundColor: tileBg }]}
+        style={[styles.tile, { backgroundColor: tileBg }, isDark && styles.tileDarkBorder]}
         onPress={onLearnPress}
         activeOpacity={0.7}
       >
@@ -98,6 +98,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     minWidth: 0,
+  },
+  tileDarkBorder: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   emoji: {
     fontSize: 20,

@@ -24,7 +24,7 @@ export function TodaysActionCard({
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor }]}
+      style={[styles.card, { backgroundColor }, isDark && styles.cardDarkBorder]}
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -53,6 +53,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
+  },
+  cardDarkBorder: {
+    borderWidth: 1,
+    borderColor: 'rgba(91,79,232,0.3)',
   },
   textBlock: {
     flex: 1,

@@ -149,6 +149,9 @@ export function LearnScreen() {
   const { user } = useAuthStore();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const Header = isDark ? AppHeaderDark : AppHeader;
+  const cardBg = isDark ? '#1E293B' : '#FFFFFF';
+  const cardDarkBorder = isDark ? { borderWidth: 1 as const, borderColor: 'rgba(255,255,255,0.08)' as const } : null;
+  const sectionTitleColor = isDark ? '#F8FAFC' : '#0F172A';
   const queryClient = useQueryClient();
   const { data: learnData, isLoading: learnLoading, isError: learnError, refetch: refetchLearn } = useQuery({
     queryKey: queryKeys.learn(),
@@ -212,7 +215,7 @@ export function LearnScreen() {
     <View style={styles.headerRight}>
       <View style={[styles.streakPill, isDark && { backgroundColor: themeColors.cardBackground }]}>
         <Text style={styles.streakEmoji}>🔥</Text>
-        <Text style={[styles.streakText, { color: themeColors.textPrimary }]}>{streak} day streak</Text>
+        <Text style={[styles.streakText, { color: sectionTitleColor }]}>{streak} day streak</Text>
       </View>
       <TouchableOpacity
         onPress={() => navigation.navigate('Notifications')}
@@ -265,7 +268,7 @@ export function LearnScreen() {
           right={headerRight}
         />
         <View style={styles.main}>
-          <View style={styles.missionCardWrap}>
+          <View style={[styles.missionCardWrap, { backgroundColor: cardBg, borderRadius: 20 }, cardDarkBorder]}>
             <TodaysMissionCard
               data={data}
             onCancelGuide={(serviceName) => {
@@ -281,7 +284,7 @@ export function LearnScreen() {
             />
           </View>
 
-          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>Your Quests</Text>
+          <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Your Quests</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -292,7 +295,8 @@ export function LearnScreen() {
                 key={quest.title}
                 style={[
                   styles.questCard,
-                  { backgroundColor: themeColors.cardBackground },
+                  { backgroundColor: cardBg },
+                  cardDarkBorder,
                   index === 0 && styles.questCardFirst,
                   index === LEARN_QUESTS.length - 1 && styles.questCardLast,
                 ]}
@@ -306,31 +310,31 @@ export function LearnScreen() {
                 <View style={[styles.questIconCircle, { backgroundColor: quest.iconBg }]}>
                   <Text style={styles.questIconEmoji}>{quest.icon}</Text>
                 </View>
-                <Text style={[styles.questCardTitle, { color: themeColors.textPrimary }]}>{quest.title}</Text>
+                <Text style={[styles.questCardTitle, { color: sectionTitleColor }]}>{quest.title}</Text>
                 <View style={[styles.questTag, { backgroundColor: quest.tagBg }]}>
                   <Text style={[styles.questTagText, { color: quest.tagColor }]}>
                     {quest.tag}
                   </Text>
                 </View>
-                <Text style={[styles.questSteps, { color: themeColors.textMuted }]}>{quest.steps}</Text>
+                <Text style={[styles.questSteps, { color: isDark ? '#94A3B8' : '#64748B' }]}>{quest.steps}</Text>
                 <Text style={[styles.questSubtitle, { color: colors.accent.primary }]}>{quest.subtitle}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text style={[styles.sectionTitle, { color: themeColors.textPrimary }]}>Quick Wins · 60 sec each</Text>
+          <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Quick Wins · 60 sec each</Text>
           <View style={styles.quickWinsGrid}>
             {QUICK_WINS_INLINE.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.quickWinCard, { backgroundColor: themeColors.cardBackground }]}
+                style={[styles.quickWinCard, { backgroundColor: cardBg }, cardDarkBorder]}
                 onPress={() =>
                   navigation.navigate('QuickWin', { id: item.id, type: item.type })
                 }
                 activeOpacity={0.9}
               >
                 <Text style={styles.quickWinEmoji}>{item.emoji}</Text>
-                <Text style={[styles.quickWinTitle, { color: themeColors.textPrimary }]}>{item.title}</Text>
+                <Text style={[styles.quickWinTitle, { color: sectionTitleColor }]}>{item.title}</Text>
                 <Text style={[styles.quickWinArrow, { color: colors.accent.primary }]}>→</Text>
               </TouchableOpacity>
             ))}
@@ -371,6 +375,8 @@ const styles = StyleSheet.create({
   },
   missionCardWrap: {
     marginHorizontal: 16,
+    overflow: 'hidden',
+    padding: 0,
   },
   learnSectionWrap: {
     marginHorizontal: 16,
