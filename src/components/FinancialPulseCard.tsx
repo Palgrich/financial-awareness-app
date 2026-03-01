@@ -69,41 +69,53 @@ export function FinancialPulseCard({
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      <View style={styles.content}>
+      <View style={styles.topRow}>
+        <Text style={styles.pulseLabel}>FINANCIAL PULSE</Text>
+        <View style={styles.statusPill}>
+          <Text style={styles.statusPillText}>{status}</Text>
+        </View>
+      </View>
+
+      <View style={styles.ringAndStatusRow}>
         <View style={styles.ringWrap}>
           <PulseRing percent={healthPercent} />
           <View style={styles.ringCenter}>
-            <Text style={styles.statusWord}>{status}</Text>
+            <Text style={styles.ringPercent}>{healthPercent}</Text>
+            <Text style={styles.ringHealthLabel}>health</Text>
           </View>
         </View>
-        <Text style={styles.description} numberOfLines={3}>
-          {description}
-        </Text>
-        {topAction ? (
-          <>
+        <View style={styles.statusBlock}>
+          <Text style={styles.statusWord}>{status}</Text>
+          <Text style={styles.description} numberOfLines={3}>
+            {description}
+          </Text>
+        </View>
+      </View>
+
+      {topAction ? (
+        <>
+          <TouchableOpacity
+            style={styles.actionRow}
+            onPress={onActionPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionText} numberOfLines={2}>
+              {topAction.urgency === 'high' ? '🔴 ' : topAction.urgency === 'medium' ? '🟡 ' : ''}
+              {topAction.text}
+            </Text>
+            <Text style={styles.actionCta}>{topAction.cta} →</Text>
+          </TouchableOpacity>
+          {totalActions > 1 ? (
             <TouchableOpacity
-              style={styles.actionRow}
-              onPress={onActionPress}
+              style={styles.seeAllRow}
+              onPress={onSeeAll}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionText} numberOfLines={2}>
-                {topAction.urgency === 'high' ? '🔴 ' : topAction.urgency === 'medium' ? '🟡 ' : ''}
-                {topAction.text}
-              </Text>
-              <Text style={styles.actionCta}>{topAction.cta} →</Text>
+              <Text style={styles.seeAllText}>See all {totalActions} actions →</Text>
             </TouchableOpacity>
-            {totalActions > 1 ? (
-              <TouchableOpacity
-                style={styles.seeAllRow}
-                onPress={onSeeAll}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.seeAllText}>See all {totalActions} actions →</Text>
-              </TouchableOpacity>
-            ) : null}
-          </>
-        ) : null}
-      </View>
+          ) : null}
+        </>
+      ) : null}
     </LinearGradient>
   );
 }
@@ -114,13 +126,38 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 20,
   },
-  content: {
+  topRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  pulseLabel: {
+    fontSize: 11,
+    opacity: 0.5,
+    letterSpacing: 1.2,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  statusPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusPillText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+  },
+  ringAndStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginBottom: 20,
   },
   ringWrap: {
     width: RING_SIZE,
     height: RING_SIZE,
-    marginBottom: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -129,19 +166,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusWord: {
-    fontSize: 14,
+  ringPercent: {
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  ringHealthLabel: {
+    fontSize: 9,
+    opacity: 0.5,
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  statusBlock: {
+    flex: 1,
+  },
+  statusWord: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
   description: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    marginBottom: 12,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.65)',
   },
   actionRow: {
-    alignSelf: 'stretch',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     padding: 12,
     borderRadius: 12,
@@ -158,13 +207,11 @@ const styles = StyleSheet.create({
     color: '#A5F3FC',
   },
   seeAllRow: {
-    alignSelf: 'stretch',
     paddingVertical: 8,
   },
   seeAllText: {
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.85)',
-    textAlign: 'center',
   },
 });
 

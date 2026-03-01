@@ -196,7 +196,7 @@ export function ProgressScreen() {
   const learnData = undefined as
     | { lessons: Array<{ status: string; title?: string; minutes?: number }> }
     | undefined;
-  const cashBalance = userData?.availableBalance ?? 27520;
+  const cashBalance = userData?.currentBalance ?? 27520;
   const cashStatus =
     cashBalance > 5000 ? 'good' : cashBalance > 1000 ? 'moderate' : 'high';
   const completedLessons =

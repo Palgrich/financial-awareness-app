@@ -24,6 +24,8 @@ function StatusDot({ status }: { status: TileStatus }) {
   return <View style={[styles.dot, { backgroundColor: color }]} />;
 }
 
+const TILE_EMOJIS = { cash: '💰', learn: '📚', subscriptions: '🔄' } as const;
+
 function formatMoney(n: number) {
   return `$${n.toFixed(0)}`;
 }
@@ -48,14 +50,12 @@ export function PulseTiles({
         onPress={onCashPress}
         activeOpacity={0.7}
       >
-        <View style={styles.tileHeader}>
-          <Text style={styles.emoji}>💰</Text>
-          <StatusDot status={cash.status} />
-        </View>
+        <Text style={styles.emoji}>{TILE_EMOJIS.cash}</Text>
         <Text style={[styles.tileLabel, { color: textMuted }]}>Cash</Text>
         <Text style={[styles.tileValue, { color: textPrimary }]}>
           {formatMoney(cash.balance)}
         </Text>
+        <StatusDot status={cash.status} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -63,14 +63,12 @@ export function PulseTiles({
         onPress={onLearnPress}
         activeOpacity={0.7}
       >
-        <View style={styles.tileHeader}>
-          <Text style={styles.emoji}>📚</Text>
-          <StatusDot status={learn.status} />
-        </View>
+        <Text style={styles.emoji}>{TILE_EMOJIS.learn}</Text>
         <Text style={[styles.tileLabel, { color: textMuted }]}>Learn</Text>
         <Text style={[styles.tileValue, { color: textPrimary }]}>
           {learn.completed} done · Keep going
         </Text>
+        <StatusDot status={learn.status} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -78,14 +76,12 @@ export function PulseTiles({
         onPress={onSubscriptionsPress}
         activeOpacity={0.7}
       >
-        <View style={styles.tileHeader}>
-          <Text style={styles.emoji}>🔄</Text>
-          <StatusDot status={subscriptions.status} />
-        </View>
+        <Text style={styles.emoji}>{TILE_EMOJIS.subscriptions}</Text>
         <Text style={[styles.tileLabel, { color: textMuted }]}>Subscriptions</Text>
         <Text style={[styles.tileValue, { color: textPrimary }]}>
           {formatMoney(subscriptions.monthly)}/mo · {subscriptions.count}
         </Text>
+        <StatusDot status={subscriptions.status} />
       </TouchableOpacity>
     </View>
   );
@@ -103,27 +99,23 @@ const styles = StyleSheet.create({
     padding: 14,
     minWidth: 0,
   },
-  tileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
   emoji: {
     fontSize: 20,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    marginBottom: 6,
   },
   tileLabel: {
-    fontSize: 12,
+    fontSize: 11,
     marginBottom: 4,
   },
   tileValue: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginTop: 4,
   },
 });
 
