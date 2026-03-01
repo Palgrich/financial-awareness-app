@@ -21,7 +21,7 @@ export const darkColors = {
   borderColor: 'rgba(255, 255, 255, 0.1)',
 } as const;
 
-export type ThemeColors = typeof lightColors;
+export type ThemeColors = typeof lightColors | typeof darkColors;
 
 export function useTheme(): { isDark: boolean; colors: ThemeColors } {
   const darkMode = useStore((s) => s.preferences.darkMode);
