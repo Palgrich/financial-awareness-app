@@ -12,6 +12,7 @@ import { BlurView } from 'expo-blur';
 import { House, BookOpen } from 'lucide-react-native';
 import { CommonActions } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTheme } from '../theme/useTheme';
 
 const BAR_HEIGHT = 82;
 const BAR_HORIZONTAL_MARGIN = 20;
@@ -41,6 +42,7 @@ export function LiquidGlassTabBar({
   descriptors,
   insets,
 }: BottomTabBarProps) {
+  const { isDark } = useTheme();
   const [layoutWidth, setLayoutWidth] = useState(0);
   const pillAnim = useRef(new Animated.Value(state.index)).current;
 
@@ -106,6 +108,13 @@ export function LiquidGlassTabBar({
           {
             height: BAR_HEIGHT + BAR_BOTTOM_PADDING,
             borderRadius: BORDER_RADIUS,
+            ...(isDark
+              ? {
+                  backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                  borderTopWidth: 1,
+                  borderTopColor: 'rgba(255,255,255,0.08)',
+                }
+              : {}),
             ...(Platform.OS === 'ios'
               ? {
                   shadowColor: '#0F172A',
@@ -118,19 +127,21 @@ export function LiquidGlassTabBar({
         ]}
         onLayout={onLayout}
       >
-        <View style={[StyleSheet.absoluteFill, styles.blurWrap]}>
-          <BlurView
-            tint="light"
-            intensity={60}
-            style={[StyleSheet.absoluteFill, { borderRadius: BORDER_RADIUS }]}
-          />
-        </View>
+        {!isDark ? (
+          <View style={[StyleSheet.absoluteFill, styles.blurWrap]}>
+            <BlurView
+              tint="light"
+              intensity={60}
+              style={[StyleSheet.absoluteFill, { borderRadius: BORDER_RADIUS }]}
+            />
+          </View>
+        ) : null}
         <View
           style={[
             styles.glassOverlay,
             {
               borderRadius: BORDER_RADIUS,
-              borderWidth: 1,
+              borderWidth: isDark ? 0 : 1,
               borderColor: 'rgba(255, 255, 255, 0.6)',
             },
           ]}

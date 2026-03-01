@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { colors } from '../../theme/tokens';
+import { useTheme } from '../../theme/useTheme';
 import type { LearnUserData } from '../../data/learnUserData';
 
 export type MissionVariant = 'subscription' | 'creditDue' | 'cashControl';
@@ -67,18 +68,24 @@ export function TodaysMissionCard({
   onIUseIt,
   onPayNow,
 }: TodaysMissionCardProps) {
+  const { isDark, colors: themeColors } = useTheme();
   const mission = getMissionFromData(data);
+  const cardBg = isDark ? '#1E293B' : '#FFFFFF';
+  const cardDarkBorder = isDark ? { borderWidth: 1 as const, borderColor: 'rgba(255,255,255,0.08)' as const } : {};
+  const textPrimary = isDark ? '#F8FAFC' : colors.text.primary;
+  const textMuted = isDark ? '#94A3B8' : colors.text.muted;
+  const textSecondary = isDark ? '#F8FAFC' : colors.text.secondary;
 
   return (
-    <View style={[styles.card, { borderLeftColor: mission.borderColor }]}>
+    <View style={[styles.card, { borderLeftColor: mission.borderColor, backgroundColor: cardBg, ...cardDarkBorder }]}>
       <View style={styles.tagRow}>
         <View style={styles.tag}>
-          <Text style={styles.tagText}>{mission.tag}</Text>
+          <Text style={[styles.tagText, { color: textSecondary }]}>{mission.tag}</Text>
         </View>
       </View>
-      <Text style={styles.title}>{mission.title}</Text>
+      <Text style={[styles.title, { color: textPrimary }]}>{mission.title}</Text>
       {mission.subtitle ? (
-        <Text style={styles.subtitle}>{mission.subtitle}</Text>
+        <Text style={[styles.subtitle, { color: textMuted }]}>{mission.subtitle}</Text>
       ) : null}
       <View style={styles.actions}>
         {mission.primaryCta && (
@@ -109,7 +116,7 @@ export function TodaysMissionCard({
             style={styles.secondaryBtn}
             onPress={() => onIUseIt?.(mission.serviceName!)}
           >
-            <Text style={styles.secondaryBtnText}>{mission.secondaryCta}</Text>
+            <Text style={[styles.secondaryBtnText, { color: textPrimary }]}>{mission.secondaryCta}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -119,7 +126,6 @@ export function TodaysMissionCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     borderLeftWidth: 5,
@@ -143,17 +149,14 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.text.secondary,
   },
   title: {
     fontSize: 17,
     fontWeight: '600',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.text.muted,
     marginBottom: 16,
   },
   actions: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
@@ -179,6 +182,5 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text.primary,
   },
 });
