@@ -23,14 +23,17 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - ETA: 2026-03-14
    - Evidence: `server/index.js`, `src/api/endpoints/accounts.ts`, `server/README.md`
 
-3. [ ] **Backend read API for transactions (MVP parity)**
+3. [x] **Backend read API for transactions (MVP parity)**
+   - Status: Done (2026-03-08)
    - Owner: Dev
    - ETA: 2026-03-14
-   - Evidence gap: `src/api/endpoints/transactions.ts` is empty
+   - Evidence: `server/index.js`, `src/api/endpoints/transactions.ts`, `server/README.md`
 
-4. [ ] **Wire FE to new accounts/transactions APIs with fallback handling**
+4. [x] **Wire FE to new accounts/transactions APIs with fallback handling**
+   - Status: Done (2026-03-08)
    - Owner: Dev
    - ETA: 2026-03-16
+   - Evidence: `App.tsx`, `src/state/store.ts`, `src/api/endpoints/accounts.ts`, `src/api/endpoints/transactions.ts`
 
 5. [ ] **Terminology ADR + UI/documentation rename plan (Health Score vs Weather)**
    - Owner: TPM + Design

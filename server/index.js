@@ -30,6 +30,19 @@ const accounts = [
   { id: 'ally-savings', institutionId: 'inst-ally', name: 'Savings', type: 'savings', balance: 8400.0 },
 ];
 
+const transactions = [
+  { id: 't1', date: '2026-03-07', merchant: 'Whole Foods', category: 'Groceries', amount: 87.42, type: 'expense', accountId: 'chase-credit', isRecurring: false },
+  { id: 't2', date: '2026-03-06', merchant: 'Netflix', category: 'Entertainment', amount: 15.99, type: 'expense', accountId: 'chase-credit', isRecurring: true },
+  { id: 't3', date: '2026-03-06', merchant: 'ACME Corp', category: 'Income', amount: 3200.0, type: 'income', accountId: 'boa-checking', isRecurring: true },
+  { id: 't4', date: '2026-03-05', merchant: 'Spotify', category: 'Entertainment', amount: 10.99, type: 'expense', accountId: 'chase-credit', isRecurring: true },
+  { id: 't5', date: '2026-03-05', merchant: 'Shell Gas', category: 'Transportation', amount: 52.0, type: 'expense', accountId: 'chase-credit', isRecurring: false },
+  { id: 't6', date: '2026-03-04', merchant: 'Planet Fitness', category: 'Health', amount: 24.99, type: 'expense', accountId: 'boa-checking', isRecurring: true },
+  { id: 't7', date: '2026-03-03', merchant: 'Electric Co', category: 'Utilities', amount: 89.0, type: 'expense', accountId: 'boa-checking', isRecurring: true },
+  { id: 't8', date: '2026-03-02', merchant: 'Transfer to Savings', category: 'Transfer', amount: 200.0, type: 'expense', accountId: 'boa-checking', isRecurring: false },
+  { id: 't9', date: '2026-03-01', merchant: 'Trader Joe\'s', category: 'Groceries', amount: 62.3, type: 'expense', accountId: 'chase-credit', isRecurring: false },
+  { id: 't10', date: '2026-02-28', merchant: 'Freelance Payment', category: 'Income', amount: 500.0, type: 'income', accountId: 'boa-checking', isRecurring: false },
+];
+
 const learnData = {
   lessons: [
     { id: 'lesson-1', title: 'The 30% credit rule explained', minutes: 2, status: 'done', lastStartedAt: '2026-02-18T10:00:00.000Z' },
@@ -63,6 +76,10 @@ app.get('/metrics', authMiddleware, (req, res) => {
 
 app.get('/accounts', authMiddleware, (_req, res) => {
   res.json(accounts);
+});
+
+app.get('/transactions', authMiddleware, (_req, res) => {
+  res.json(transactions);
 });
 
 app.get('/learn', authMiddleware, (req, res) => {

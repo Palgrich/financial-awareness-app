@@ -69,6 +69,7 @@ interface AppState {
   appLoaded: boolean;
   // Actions
   setSelectedInstitutionId: (id: string | null) => void;
+  setCashData: (accounts: Account[], transactions: Transaction[]) => void;
   getVisibleAccounts: () => Account[];
   getVisibleTransactions: () => Transaction[];
   setPreferences: (p: Partial<UserPreferences>) => void;
@@ -124,6 +125,10 @@ export const useStore = create<AppState>((set, get) => ({
   setSelectedInstitutionId: (id) => {
     set({ selectedInstitutionId: id });
     get().persistScope();
+  },
+
+  setCashData: (accounts, transactions) => {
+    set({ accounts, transactions });
   },
 
   getVisibleAccounts: () => {

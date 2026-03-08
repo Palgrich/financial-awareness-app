@@ -8,7 +8,9 @@ import { checkHealth } from './src/api/endpoints/health';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colors } from './src/theme/tokens';
 import { queryClient } from './src/api/queryClient';
-import { SHOULD_REQUIRE_API_HEALTH } from './src/api/config';
+import { SHOULD_REQUIRE_API_HEALTH, USE_MOCK_API } from './src/api/config';
+import { getAccounts } from './src/api/endpoints/accounts';
+import { getTransactions } from './src/api/endpoints/transactions';
 
 async function runHealthCheck(setApiOk: (ok: boolean) => void) {
   try {
@@ -24,6 +26,7 @@ async function runHealthCheck(setApiOk: (ok: boolean) => void) {
 export default function App() {
   const hydrate = useStore((s) => s.hydrate);
   const setAppLoaded = useStore((s) => s.setAppLoaded);
+  const setCashData = useStore((s) => s.setCashData);
   const dark = useStore((s) => s.preferences.darkMode);
   const [apiOk, setApiOkState] = useState<boolean | null>(SHOULD_REQUIRE_API_HEALTH ? null : true);
   const [retryInProgress, setRetryInProgress] = useState(false);
@@ -40,12 +43,28 @@ export default function App() {
       } else if (!cancelled) {
         setApiOkState(true);
       }
+
+      if (!USE_MOCK_API) {
+        try {
+          const [accounts, transactions] = await Promise.all([
+            getAccounts(),
+            getTransactions(),
+          ]);
+          if (!cancelled) {
+            setCashData(accounts, transactions);
+            console.log('[api] loaded accounts/transactions');
+          }
+        } catch (e) {
+          console.log('[api] accounts/transactions fetch failed, using fallback mock data');
+        }
+      }
+
       if (!cancelled) setAppLoaded(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, [hydrate, setAppLoaded]);
+  }, [hydrate, setAppLoaded, setCashData]);
 
   // Auto re-check every 3s while offline; single timer, cleared on cleanup or when apiOk changes
   useEffect(() => {
