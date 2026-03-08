@@ -35,7 +35,7 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - ETA: 2026-03-16
    - Evidence: `App.tsx`, `src/state/store.ts`, `src/api/endpoints/accounts.ts`, `src/api/endpoints/transactions.ts`
 
-5. [ ] **Terminology ADR + UI/documentation rename plan (Health Score vs Weather)**
+5. [ ] **Terminology ADR + rollout plan: use ONLY Finance Pulse**
    - Owner: TPM + Design
    - ETA: 2026-03-11
    - Evidence: `src/screens/HealthBreakdownScreen.tsx`, `src/components/FinancialWeatherCard.tsx`

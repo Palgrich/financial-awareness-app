@@ -24,6 +24,15 @@
 - **Impact:** Reduces UX confusion and analytics naming drift.
 - **Review date:** 2026-03-11.
 
+## 2026-03-08 — Founder terminology decision: use ONLY “Finance Pulse”
+- **Owner:** Founder + TPM + Design
+- **Decision:** Canonical term across product UI, docs, board items, and messaging is **Finance Pulse** only.
+- **Context:** Founder confirmation received on 2026-03-08; previous terms must be deprecated.
+- **Replaced terms:** “Financial Health Score”, “Financial Weather”, and variants in delivery/messaging surfaces.
+- **Impact:** Single product language in UX, planning, and GTM communication; removes terminology ambiguity.
+- **Implementation note:** Existing code labels may still contain legacy terms until refactor PRs land; docs/board are updated immediately.
+- **Review date:** 2026-03-10.
+
 ## 2026-03-07 — Timeline discrepancy recorded as unresolved
 - **Owner:** TPM
 - **Decision:** Log discrepancy and avoid asserting unsupported timeline claims.

@@ -20,7 +20,7 @@
 - Coach and Profile are implemented with demo/heuristic behavior (not full production behavior).
 - Onboarding flow beyond auth is not found in repo (**Unknown/Not started**).
 - Plaid integration is not found in repo (**Not started**).
-- Terminology drift exists: “Financial Health Score” and “Financial Weather” both used.
+- Founder decision set canonical term to **Finance Pulse** only; rollout in UI/code in progress.
 - Timeline mismatch needs alignment: sprint target is 2 weeks, repository commit span is ~3 weeks; 8-week baseline source is **Unknown**.
 
 ## Main blockers to beta
@@ -50,7 +50,7 @@
 
 ### Design (terminology/profile copy tasks)
 
-3) **P0-5 Terminology ADR + UI/documentation rename plan (Health Score vs Weather)** — **In Progress**
+3) **P0-5 Terminology ADR + rollout plan: use ONLY Finance Pulse** — **In Progress**
 - Owner: Design
 - Source: `docs/product/backlog.md` (Top-10 P0 #5)
 - Dependencies: None
