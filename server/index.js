@@ -22,6 +22,14 @@ const metrics = {
   creditScore: 90,
 };
 
+const accounts = [
+  { id: 'boa-checking', institutionId: 'inst-boa', name: 'Checking', type: 'checking', balance: 4520.5 },
+  { id: 'boa-savings', institutionId: 'inst-boa', name: 'Savings', type: 'savings', balance: 12500.0 },
+  { id: 'chase-credit', institutionId: 'inst-chase', name: 'Credit Card', type: 'credit', balance: -892.0 },
+  { id: 'chase-checking', institutionId: 'inst-chase', name: 'Checking', type: 'checking', balance: 2100.0 },
+  { id: 'ally-savings', institutionId: 'inst-ally', name: 'Savings', type: 'savings', balance: 8400.0 },
+];
+
 const learnData = {
   lessons: [
     { id: 'lesson-1', title: 'The 30% credit rule explained', minutes: 2, status: 'done', lastStartedAt: '2026-02-18T10:00:00.000Z' },
@@ -51,6 +59,10 @@ app.get('/health', (req, res) => {
 
 app.get('/metrics', authMiddleware, (req, res) => {
   res.json(metrics);
+});
+
+app.get('/accounts', authMiddleware, (_req, res) => {
+  res.json(accounts);
 });
 
 app.get('/learn', authMiddleware, (req, res) => {

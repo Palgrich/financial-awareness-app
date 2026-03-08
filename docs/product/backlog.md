@@ -11,15 +11,17 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 
 ## Top-10 P0 tasks
 
-1. [ ] **Startup resilience: skip hard `/health` block in mock mode**
+1. [x] **Startup resilience: skip hard `/health` block in mock mode**
+   - Status: Done (2026-03-07)
    - Owner: Dev
    - ETA: 2026-03-10
    - Evidence: `App.tsx`, `src/api/config.ts`
 
-2. [ ] **Backend read API for accounts (MVP parity)**
+2. [x] **Backend read API for accounts (MVP parity)**
+   - Status: Done (2026-03-07)
    - Owner: Dev
    - ETA: 2026-03-14
-   - Evidence gap: `src/api/endpoints/accounts.ts` is empty
+   - Evidence: `server/index.js`, `src/api/endpoints/accounts.ts`, `server/README.md`
 
 3. [ ] **Backend read API for transactions (MVP parity)**
    - Owner: Dev

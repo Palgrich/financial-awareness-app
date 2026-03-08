@@ -8,6 +8,7 @@ import { checkHealth } from './src/api/endpoints/health';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colors } from './src/theme/tokens';
 import { queryClient } from './src/api/queryClient';
+import { SHOULD_REQUIRE_API_HEALTH } from './src/api/config';
 
 async function runHealthCheck(setApiOk: (ok: boolean) => void) {
   try {
@@ -24,7 +25,7 @@ export default function App() {
   const hydrate = useStore((s) => s.hydrate);
   const setAppLoaded = useStore((s) => s.setAppLoaded);
   const dark = useStore((s) => s.preferences.darkMode);
-  const [apiOk, setApiOkState] = useState<boolean | null>(null);
+  const [apiOk, setApiOkState] = useState<boolean | null>(SHOULD_REQUIRE_API_HEALTH ? null : true);
   const [retryInProgress, setRetryInProgress] = useState(false);
 
   useEffect(() => {
@@ -32,9 +33,13 @@ export default function App() {
     (async () => {
       await hydrate();
       await useAuthStore.getState().hydrateAuth();
-      await runHealthCheck((ok) => {
-        if (!cancelled) setApiOkState(ok);
-      });
+      if (SHOULD_REQUIRE_API_HEALTH) {
+        await runHealthCheck((ok) => {
+          if (!cancelled) setApiOkState(ok);
+        });
+      } else if (!cancelled) {
+        setApiOkState(true);
+      }
       if (!cancelled) setAppLoaded(true);
     })();
     return () => {

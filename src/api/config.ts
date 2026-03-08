@@ -10,3 +10,6 @@ export const API_BASE_URL =
 const rawMock = process.env.EXPO_PUBLIC_USE_MOCK_API;
 // treat undefined as true; treat 'false' (case-insensitive) as false; everything else true
 export const USE_MOCK_API = rawMock ? rawMock.toLowerCase() !== 'false' : true;
+
+// Health checks should hard-gate startup only when running against real backend APIs.
+export const SHOULD_REQUIRE_API_HEALTH = !USE_MOCK_API;

@@ -27,6 +27,10 @@ You should see: `API server running on http://localhost:3000`
 
 ## Endpoints
 
+Auth requirement: `GET /metrics`, `GET /accounts`, `GET /learn`, and `POST /learn/lessons/:id/complete` require a valid `Authorization: Bearer <token>` header.
+
+- `GET /health` — returns `{ status: "ok" }` (public, no auth)
 - `GET /metrics` — returns MetricSnapshot JSON
+- `GET /accounts` — returns Account[] JSON (`id`, `institutionId`, `name`, `type`, `balance`)
 - `GET /learn` — returns `{ lessons, paths, challenges }` JSON
 - `POST /learn/lessons/:id/complete` — marks lesson as done (204, no body)

@@ -33,7 +33,7 @@
 
 ### Dev (Top-2 P0 from backlog)
 
-1) **P0-1 Startup resilience: skip hard `/health` block in mock mode** — **In Progress**
+1) **P0-1 Startup resilience: skip hard `/health` block in mock mode** — **Done**
 - Owner: Dev
 - Source: `docs/product/backlog.md` (Top-10 P0 #1)
 - Dependencies: None
@@ -42,7 +42,7 @@
   - Offline screen shown only when `EXPO_PUBLIC_USE_MOCK_API=false` and API unavailable.
   - Verified on simulator + physical device.
 
-2) **P0-2 Backend read API for accounts (MVP parity)** — **In Progress**
+2) **P0-2 Backend read API for accounts (MVP parity)** — **Done**
 - Owner: Dev
 - Source: `docs/product/backlog.md` (Top-10 P0 #2)
 - Dependencies: None (parallel with P0-1)
