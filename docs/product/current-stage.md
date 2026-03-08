@@ -24,7 +24,7 @@
 - Timeline mismatch needs alignment: sprint target is 2 weeks, repository commit span is ~3 weeks; 8-week baseline source is **Unknown**.
 
 ## Main blockers to beta
-1. Missing backend parity for transactions/subscriptions and FE wiring completion.
+1. Missing backend parity for subscriptions and remaining domain hardening.
 2. No real bank connection (Plaid not implemented).
 3. Scope/terminology inconsistency in UX and docs.
 
@@ -40,23 +40,13 @@
 - Owner: Dev
 - Completion reference: commit `b3adf14`
 
-3) **P0-3 Backend read API for transactions (MVP parity)** — **In Progress**
+3) **P0-3 Backend read API for transactions (MVP parity)** — **Done**
 - Owner: Dev
-- Source: `docs/product/backlog.md` (Top-10 P0 #3)
-- Dependencies: None
-- Acceptance criteria:
-  - `GET /transactions` endpoint implemented and documented.
-  - Supports baseline filtering expected by current FE screens.
-  - Auth behavior + error behavior defined.
+- Completion reference: commit `0e9f8e9`
 
-4) **P0-4 Wire FE to new accounts/transactions APIs with fallback handling** — **In Progress**
+4) **P0-4 Wire FE to new accounts/transactions APIs with fallback handling** — **Done**
 - Owner: Dev
-- Source: `docs/product/backlog.md` (Top-10 P0 #4)
-- Dependencies: P0-3 (or parallel if contract stabilized)
-- Acceptance criteria:
-  - FE reads accounts/transactions from API when mock mode is off.
-  - Safe fallback path exists (controlled error/empty state, no crash).
-  - Endpoint stubs are implemented or removed with rationale.
+- Completion reference: commit `0e9f8e9`
 
 ### Design (terminology/profile copy tasks)
 
@@ -90,8 +80,8 @@
     - External beta remains NO-GO until P0 completion.
 
 ## Next checkpoint (TPM)
-- Track completion of P0-3/P0-4 and move board status to Review.
-- Then unblock P0-8 (auth hardening) and P0-10 (beta checklist + smoke CI).
+- With P0-3/P0-4 complete, move execution focus to P0-5/P0-7 (Design) and P0-8 (Dev).
+- Prepare gate for P0-10 (beta checklist + smoke CI) after terminology/copy alignment.
 
 ## Current Go/No-Go
 - **NO-GO external beta** until Top-10 P0 execution is complete.
