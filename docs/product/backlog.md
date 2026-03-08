@@ -12,28 +12,28 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 ## Top-10 P0 tasks
 
 1. [x] **Startup resilience: skip hard `/health` block in mock mode**
-   - Status: Done (2026-03-07)
+   - Status: Done (commit `b3adf14`)
    - Owner: Dev
    - ETA: 2026-03-10
    - Evidence: `App.tsx`, `src/api/config.ts`
 
 2. [x] **Backend read API for accounts (MVP parity)**
-   - Status: Done (2026-03-07)
+   - Status: Done (commit `b3adf14`)
    - Owner: Dev
    - ETA: 2026-03-14
    - Evidence: `server/index.js`, `src/api/endpoints/accounts.ts`, `server/README.md`
 
-3. [x] **Backend read API for transactions (MVP parity)**
-   - Status: Done (2026-03-08)
+3. [ ] **Backend read API for transactions (MVP parity)**
+   - Status: In Progress (Sprint #1 current focus)
    - Owner: Dev
    - ETA: 2026-03-14
-   - Evidence: `server/index.js`, `src/api/endpoints/transactions.ts`, `server/README.md`
+   - Evidence gap: `src/api/endpoints/transactions.ts` (final verification pending)
 
-4. [x] **Wire FE to new accounts/transactions APIs with fallback handling**
-   - Status: Done (2026-03-08)
+4. [ ] **Wire FE to new accounts/transactions APIs with fallback handling**
+   - Status: In Progress (after/parallel with #3)
    - Owner: Dev
    - ETA: 2026-03-16
-   - Evidence: `App.tsx`, `src/state/store.ts`, `src/api/endpoints/accounts.ts`, `src/api/endpoints/transactions.ts`
+   - Evidence target: `App.tsx`, `src/state/store.ts`, `src/api/endpoints/accounts.ts`, `src/api/endpoints/transactions.ts`
 
 5. [ ] **Terminology ADR + UI/documentation rename plan (Health Score vs Weather)**
    - Owner: TPM + Design
@@ -88,6 +88,12 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
   - ETA: Sprint +2
 
 ---
+
+## Board status snapshot (Sprint #1)
+- **Done:** P0-1, P0-2
+- **In Progress:** P0-3, P0-4, P0-5, P0-7
+- **Ready:** P0-6, P0-8, P0-9, P0-10
+- **Blocked:** None (current)
 
 ## Status flow
 Ready → In Progress → Review → Done

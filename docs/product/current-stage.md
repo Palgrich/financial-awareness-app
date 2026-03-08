@@ -24,32 +24,39 @@
 - Timeline mismatch needs alignment: sprint target is 2 weeks, repository commit span is ~3 weeks; 8-week baseline source is **Unknown**.
 
 ## Main blockers to beta
-1. Startup hard dependency on API health check (`App.tsx`).
-2. Missing backend parity for transactions/accounts/subscriptions.
-3. No real bank connection (Plaid not implemented).
-4. Scope/terminology inconsistency in UX and docs.
+1. Missing backend parity for transactions/subscriptions and FE wiring completion.
+2. No real bank connection (Plaid not implemented).
+3. Scope/terminology inconsistency in UX and docs.
 
 ## First Wave Assignment (started now)
 
-### Dev (Top-2 P0 from backlog)
+### Dev (execution moved to next wave)
 
 1) **P0-1 Startup resilience: skip hard `/health` block in mock mode** — **Done**
 - Owner: Dev
-- Source: `docs/product/backlog.md` (Top-10 P0 #1)
-- Dependencies: None
-- Acceptance criteria:
-  - App launches in mock mode with API down.
-  - Offline screen shown only when `EXPO_PUBLIC_USE_MOCK_API=false` and API unavailable.
-  - Verified on simulator + physical device.
+- Completion reference: commit `b3adf14`
 
 2) **P0-2 Backend read API for accounts (MVP parity)** — **Done**
 - Owner: Dev
-- Source: `docs/product/backlog.md` (Top-10 P0 #2)
-- Dependencies: None (parallel with P0-1)
+- Completion reference: commit `b3adf14`
+
+3) **P0-3 Backend read API for transactions (MVP parity)** — **In Progress**
+- Owner: Dev
+- Source: `docs/product/backlog.md` (Top-10 P0 #3)
+- Dependencies: None
 - Acceptance criteria:
-  - `GET /accounts` endpoint implemented and documented.
-  - Returns account contract suitable for FE consumption.
+  - `GET /transactions` endpoint implemented and documented.
+  - Supports baseline filtering expected by current FE screens.
   - Auth behavior + error behavior defined.
+
+4) **P0-4 Wire FE to new accounts/transactions APIs with fallback handling** — **In Progress**
+- Owner: Dev
+- Source: `docs/product/backlog.md` (Top-10 P0 #4)
+- Dependencies: P0-3 (or parallel if contract stabilized)
+- Acceptance criteria:
+  - FE reads accounts/transactions from API when mock mode is off.
+  - Safe fallback path exists (controlled error/empty state, no crash).
+  - Endpoint stubs are implemented or removed with rationale.
 
 ### Design (terminology/profile copy tasks)
 
@@ -83,7 +90,8 @@
     - External beta remains NO-GO until P0 completion.
 
 ## Next checkpoint (TPM)
-- Validate first-wave outputs and unblock Week 2 API parity tasks (`transactions` + FE wiring).
+- Track completion of P0-3/P0-4 and move board status to Review.
+- Then unblock P0-8 (auth hardening) and P0-10 (beta checklist + smoke CI).
 
 ## Current Go/No-Go
 - **NO-GO external beta** until Top-10 P0 execution is complete.
