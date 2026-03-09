@@ -1,7 +1,7 @@
 /**
- * Rules-based mock "AI" coach responses.
- * Returns helpful educational answers based on keywords.
- * Supports contextual triggers: high APR debt, debt-to-income, budget overspending, savings below target.
+ * Rule-based beta coach responses.
+ * Returns educational guidance based on keyword + context matching.
+ * Scope note: no live-bank intelligence and no generative AI inference.
  */
 
 export interface CoachMessage {
@@ -200,7 +200,7 @@ export function getCoachResponse(userMessage: string, context?: CoachContext): C
     };
   }
 
-  let text = 'I can help with fees, savings vs checking, CDs, overdraft, subscriptions, and budgeting. Try asking: "Why did I pay a fee?" or "What is my debt-to-income ratio?" You can also explore the Learn tab for short lessons.';
+  let text = 'I’m a rule-based beta coach (not live-bank AI). I can help with fees, savings vs checking, CDs, overdraft, subscriptions, and budgeting. Try asking: "Why did I pay a fee?" or "What is my debt-to-income ratio?" You can also explore the Learn tab for short lessons.';
   const ctas: Partial<CoachMessage> = {};
   if (context) {
     const highApr = context.debts.find((d) => (d.apr ?? 0) > 20 && d.status !== 'paid_off');

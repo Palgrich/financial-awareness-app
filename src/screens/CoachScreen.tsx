@@ -17,7 +17,7 @@ type Nav = NativeStackNavigationProp<DashboardStackParamList, 'CoachHome'>;
 const INITIAL_BOT: CoachMessage = {
   id: 'welcome',
   isUser: false,
-  text: 'Hi! I’m your AI assistant. Ask me about your spending, subscriptions, or account balances. Type your question below.',
+  text: 'Hi! I’m your Finance Pulse coach (beta). I use rule-based guidance from your current app data (sample/demo data in demo mode) and do not connect to live bank systems. Ask about spending, subscriptions, budgets, or balances.',
 };
 
 export function CoachScreen() {
@@ -137,7 +137,7 @@ export function CoachScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: bg }]}>
-      <Header title="AI" subtitle="Ask about your spending, subscriptions, or balances." />
+      <Header title="Coach (Beta)" subtitle="Rule-based guidance only. No live-bank intelligence." />
       <ScrollView
         ref={scrollRef}
         style={styles.messages}
@@ -189,7 +189,7 @@ export function CoachScreen() {
         <View style={[styles.inputRow, dark && styles.inputRowDark]}>
           <TextInput
             style={[styles.input, { color: dark ? '#f1f5f9' : '#0f172a' }]}
-            placeholder="Ask a question..."
+            placeholder="Ask a finance question (rule-based coach)..."
             placeholderTextColor={dark ? '#64748b' : '#94a3b8'}
             value={input}
             onChangeText={setInput}

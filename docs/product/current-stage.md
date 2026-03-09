@@ -50,21 +50,22 @@
 
 ### Design (terminology/profile copy tasks)
 
-3) **P0-5 Terminology ADR + rollout plan: use ONLY Finance Pulse** — **In Progress**
-- Owner: Design
-- Source: `docs/product/backlog.md` (Top-10 P0 #5)
-- Dependencies: None
-- Acceptance criteria:
-  - One canonical term approved and documented.
-  - Rename map old → new labels prepared for UI/docs.
+3) **P0-5 Terminology ADR + rollout plan: use ONLY Finance Pulse** — **Done**
+- Owner: TPM + Design
+- Completion reference: commit `47534ab`
+- Evidence: `docs/product/decisions.md`, `docs/product/ready-cards.md`
 
-4) **P0-7 Profile bank-connect clarity (demo-only wording)** — **In Progress**
+4) **P0-6 Coach scope hardening (explicit rule-based beta scope in UI/copy)** — **Done**
+- Owner: Design (primary) + Dev (support)
+- Source: `docs/product/backlog.md` (Top-10 P0 #6)
+- Dependencies: P0-5 terminology decision
+- Evidence: `src/screens/CoachScreen.tsx`, `src/utils/coachResponses.ts`
+
+5) **P0-7 Profile bank-connect clarity (demo-only wording)** — **Done**
 - Owner: Design
 - Source: `docs/product/backlog.md` (Top-10 P0 #7)
 - Dependencies: P0-5 terminology decision
-- Acceptance criteria:
-  - Profile copy removes ambiguity about real bank connection.
-  - Explicit “demo/sample data only” wording in flow.
+- Evidence: `src/screens/ProfileScreen.tsx`
 
 ### Marketing (beta narrative constraints)
 
@@ -80,7 +81,8 @@
     - External beta remains NO-GO until P0 completion.
 
 ## Next checkpoint (TPM)
-- With P0-3/P0-4 complete, move execution focus to P0-5/P0-7 (Design) and P0-8 (Dev).
+- P0-5, P0-6, and P0-7 are closed.
+- Next queued starter remains P0-8 (Dev auth hardening).
 - Prepare gate for P0-10 (beta checklist + smoke CI) after terminology/copy alignment.
 
 ## Current Go/No-Go

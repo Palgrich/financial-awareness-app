@@ -126,9 +126,10 @@ export function ProfileScreen() {
         </Card>
 
         <View style={styles.fakeConnect}>
+          <Text style={[styles.demoOnlyLabel, { color: mutedColor }]}>Bank connection is demo-only in this beta.</Text>
           <PrimaryButton
-            title="Connect bank"
-            onPress={() => Alert.alert('Demo mode', 'Using sample data. No real bank connection.')}
+            title="Connect bank (demo)"
+            onPress={() => Alert.alert('Demo only', 'This action does not connect to a real bank. The app currently uses sample/demo data only.')}
           />
         </View>
         <View style={{ height: 24 }} />
@@ -148,4 +149,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   disclaimer: { fontSize: 13 },
   fakeConnect: { marginTop: 16, marginHorizontal: 16 },
+  demoOnlyLabel: { fontSize: 13, marginBottom: 8 },
 });

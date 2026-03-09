@@ -35,17 +35,20 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - ETA: 2026-03-16
    - Evidence: `App.tsx`, `src/state/store.ts`, `src/api/endpoints/accounts.ts`, `src/api/endpoints/transactions.ts`
 
-5. [ ] **Terminology ADR + rollout plan: use ONLY Finance Pulse**
+5. [x] **Terminology ADR + rollout plan: use ONLY Finance Pulse**
+   - Status: Done (commit `47534ab`)
    - Owner: TPM + Design
    - ETA: 2026-03-11
-   - Evidence: `src/screens/HealthBreakdownScreen.tsx`, `src/components/FinancialWeatherCard.tsx`
+   - Evidence: `docs/product/decisions.md`, `docs/product/ready-cards.md` (rollout map)
 
-6. [ ] **Coach scope hardening (explicit rule-based beta scope in UI/copy)**
-   - Owner: Design + Dev
+6. [x] **Coach scope hardening (explicit rule-based beta scope in UI/copy)**
+   - Status: Done (2026-03-09)
+   - Owner: Design (primary) + Dev (support)
    - ETA: 2026-03-13
    - Evidence: `src/screens/CoachScreen.tsx`, `src/utils/coachResponses.ts`
 
-7. [ ] **Profile bank-connect clarity (remove ambiguity; demo-only wording)**
+7. [x] **Profile bank-connect clarity (remove ambiguity; demo-only wording)**
+   - Status: Done (2026-03-09)
    - Owner: Design + Dev
    - ETA: 2026-03-12
    - Evidence: `src/screens/ProfileScreen.tsx`
@@ -90,9 +93,10 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 ---
 
 ## Board status snapshot (Sprint #1)
-- **Done:** P0-1, P0-2, P0-3, P0-4
-- **In Progress:** P0-5, P0-7
-- **Ready:** P0-6, P0-8, P0-9, P0-10
+- **Done:** P0-1, P0-2, P0-3, P0-4, P0-5
+- **In Progress:** None (Top-10 P0)
+- **At-Risk:** None
+- **Ready:** P0-8, P0-9, P0-10
 - **Blocked:** None (current)
 
 ## Status flow
