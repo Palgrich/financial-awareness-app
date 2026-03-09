@@ -42,21 +42,23 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - Evidence: `docs/product/decisions.md`, `docs/product/ready-cards.md` (rollout map)
 
 6. [x] **Coach scope hardening (explicit rule-based beta scope in UI/copy)**
-   - Status: Done (2026-03-09)
+   - Status: Done (commit `ad2e717`)
    - Owner: Design (primary) + Dev (support)
    - ETA: 2026-03-13
    - Evidence: `src/screens/CoachScreen.tsx`, `src/utils/coachResponses.ts`
 
 7. [x] **Profile bank-connect clarity (remove ambiguity; demo-only wording)**
-   - Status: Done (2026-03-09)
+   - Status: Done (commit `ad2e717`)
    - Owner: Design + Dev
    - ETA: 2026-03-12
    - Evidence: `src/screens/ProfileScreen.tsx`
 
 8. [ ] **Auth hardening v1 (rate limit + env guard for JWT secret)**
+   - Status: In Progress (started 2026-03-09)
    - Owner: Dev
    - ETA: 2026-03-16
-   - Evidence: `server/routes/auth.js`, `server/middleware/auth.js`
+   - Evidence target: `server/routes/auth.js`, `server/middleware/auth.js`, `server/README.md`
+   - Ready Card: `docs/product/ready-cards.md#p0-8--auth-hardening-v1-rate-limit--jwt-env-guard`
 
 9. [ ] **README and product-doc synchronization with actual architecture**
    - Owner: TPM
@@ -93,10 +95,10 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 ---
 
 ## Board status snapshot (Sprint #1)
-- **Done:** P0-1, P0-2, P0-3, P0-4, P0-5
-- **In Progress:** None (Top-10 P0)
+- **Done:** P0-1, P0-2, P0-3, P0-4, P0-5, P0-6, P0-7
+- **In Progress:** P0-8
 - **At-Risk:** None
-- **Ready:** P0-8, P0-9, P0-10
+- **Ready:** P0-9, P0-10
 - **Blocked:** None (current)
 
 ## Status flow
