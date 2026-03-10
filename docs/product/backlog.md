@@ -94,12 +94,17 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 
 ---
 
+## Hard release gate (Founder)
+**External beta launch is blocked until BOTH items are Done + verified:**
+- P0-8 — Auth hardening v1
+- P0-10 — Beta readiness checklist + smoke CI
+
 ## Board status snapshot (Sprint #1)
 - **Done:** P0-1, P0-2, P0-3, P0-4, P0-5, P0-6, P0-7
 - **In Progress:** P0-8
 - **At-Risk:** None
 - **Ready:** P0-9, P0-10
-- **Blocked:** None (current)
+- **Blocked:** External beta (hard gate: P0-8 + P0-10)
 
 ## Status flow
 Ready → In Progress → Review → Done

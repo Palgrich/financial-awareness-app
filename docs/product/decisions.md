@@ -16,6 +16,17 @@
 - **Impact:** Focus next sprint on reliability and clarity, not feature expansion.
 - **Review date:** After P0 top-10 completion.
 
+## 2026-03-09 — Founder hard release gate for external beta
+- **Owner:** Founder + TPM
+- **Decision:** **External beta launch is allowed ONLY after BOTH P0-8 and P0-10 are completed and verified.**
+- **Gate tasks:**
+  - P0-8: Auth hardening v1 (rate limit + JWT env guard)
+  - P0-10: Beta readiness checklist + smoke CI
+- **Verification rule:** Task status must be `Done` in backlog and board, with code/doc evidence linked.
+- **Enforcement:** All future executive summaries and go/no-go updates must explicitly report this gate.
+- **Impact:** Creates a strict, testable launch condition and prevents premature external release.
+- **Review date:** At beta launch decision.
+
 ## 2026-03-07 — Terminology mismatch must be resolved
 - **Owner:** TPM + Design
 - **Decision:** Create one canonical term for main score construct; deprecate conflicting labels.

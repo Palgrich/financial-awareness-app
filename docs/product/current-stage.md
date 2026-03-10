@@ -97,8 +97,14 @@
 - Prepare gate for P0-10 (beta checklist + smoke CI) after P0-8 completion.
 
 ## Current Go/No-Go
-- **NO-GO external beta** until Top-10 P0 execution is complete.
-- **Conditional internal dogfooding** after startup resilience fix and copy/narrative constraints are accepted.
+- **NO-GO external beta (Hard Release Gate):** launch is allowed ONLY after **both P0-8 and P0-10** are completed and verified.
+- **Conditional internal dogfooding** remains allowed under current scope constraints.
+
+## Summary enforcement note
+All future executive summaries must explicitly include:
+1) P0-8 status,
+2) P0-10 status,
+3) external beta gate state (OPEN/CLOSED).
 
 ## Full audit artifact
 See: `docs/reports/sprint-audit-2026-03-07.md`
