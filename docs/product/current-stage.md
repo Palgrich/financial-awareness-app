@@ -67,7 +67,7 @@
 
 ### Dev (active now)
 
-6) **P0-8 Auth hardening v1 (rate limit + JWT env guard)** — **In Progress**
+6) **P0-8 Auth hardening v1 (rate limit + JWT env guard)** — **At-Risk (In Progress)**
 - Owner: Dev
 - Execution assignment: Dev starts implementation immediately against Ready Card.
 - Ready Card: `docs/product/ready-cards.md#p0-8--auth-hardening-v1-rate-limit--jwt-env-guard`
@@ -93,7 +93,8 @@
 
 ## Next checkpoint (TPM)
 - P0-5, P0-6, and P0-7 are closed (evidence verified).
-- P0-8 is now actively in progress under its Ready Card execution plan.
+- P0-8 remains At-Risk; no new implementation evidence exists in repo (latest commit still `d5901eb`). Revalidated at 2026-03-22 21:52 PT that no additional commits landed after the missed 2026-03-16 10:00 PT Review handoff (or since the 2026-03-22 10:52 PT sync); recovery remains held at a founder decision gate with two paths (timebox rescue vs de-scope/re-sequence) before further ETA commitments are credible.
+- Founder slip gate status: **triggered** (ETA slip now >2 days); founder decision request is required on recovery path.
 - Prepare gate for P0-10 (beta checklist + smoke CI) after P0-8 completion.
 
 ## Current Go/No-Go

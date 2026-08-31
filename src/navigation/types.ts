@@ -50,6 +50,7 @@ export type DashboardStackParamList = {
   PaycheckBreakdown: undefined;
   ProgressSubscriptionList: undefined;
   CreditCardDetails: undefined;
+  Achievements: undefined;
 };
 
 export type SubscriptionsStackParamList = {
@@ -64,8 +65,9 @@ export type CoachStackParamList = {
 export type LearnStackParamList = {
   LearnHome: undefined;
   PathDetail: { pathId: string };
-  LessonDetail: { lessonId: string };
+  LessonDetail: { lessonId: string; mode?: 'lesson' | 'review' };
   ChallengeDetail: { challengeId: string };
+  Achievements: undefined;
   Notifications: undefined;
   Menu: undefined;
   /** Subscription Cleanse quest: step 1–4 or guide. */

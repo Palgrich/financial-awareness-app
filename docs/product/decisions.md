@@ -62,3 +62,23 @@
 - **Evidence:** `src/screens/CoachScreen.tsx`, `src/utils/coachResponses.ts`, `src/screens/ProfileScreen.tsx`, `src/navigation/AuthStack.tsx`
 - **Impact:** Scope alignment across product/engineering/marketing.
 - **Review date:** Next weekly report.
+
+## 2026-08-09 — Concept alignment: remove composite score, add Achievements, extend lesson flow
+- **Owner:** Founder + TPM + Design + Dev
+- **Decision:** Align the app with the marketed concept and simplify the metric model:
+  1. **Remove the composite metric** entirely (both "Financial Health" and "Financial Pulse" surfaces). This **supersedes** the 2026-03-08 "Finance Pulse" canonical-metric decision (that decision was about the composite score construct; the app name is now MoneyGator).
+  2. **Add an Achievements system** as the primary gamified progress signal (learning, consistency, action, mastery categories), computed from real user progress.
+  3. **Extend the daily lesson flow** to the full concept: theory → quiz → **practice (a real financial action)** → **periodic knowledge checks** (spaced repetition).
+  4. **Personalize the daily lesson** from user data signals (credit due, subscription load, spending, savings).
+- **Context:** The public site describes one personalized lesson/day (theory→quiz→practice→periodic checks) plus paths, financial metrics and goal progress. The app previously showed two duplicative composite scores and had no practice/knowledge-check steps; "today's lesson" was hardcoded and its Start button was broken (navigated to a non-existent lesson id).
+- **Practice definition:** A concrete in-app financial action tied to data (e.g. cancel a subscription, set a budget, set a savings goal, review transactions), which also unlocks achievements.
+- **Evidence (implementation):**
+  - `src/domain/achievements.ts`, `src/state/achievementsStore.ts`, `src/state/useAchievements.ts`
+  - `src/components/AchievementsCard.tsx`, `src/components/AchievementBadge.tsx`, `src/screens/AchievementsScreen.tsx`
+  - `src/domain/learn.ts` (selectDailyLesson, practiceRouteFor, knowledge-check helpers), `src/data/mock/lessons.ts` (topics + practice)
+  - `src/screens/LessonDetailScreen.tsx` (practice step + knowledge checks), `src/screens/LearnScreen.tsx` (personalized daily lesson + due checks)
+  - `src/screens/ProgressScreen.tsx` (Financial Pulse card → Achievements card)
+- **Kept:** Concrete metrics (spending, subscriptions, cash), learning paths, XP/streak, and goal progress.
+- **Impact:** Single, honest progress model aligned with the site; removes duplicative composite scoring; delivers the promised practice + knowledge-check loop.
+- **Follow-ups:** Wire `subscriptionsCancelled` achievement to the real cancel flow if deeper tracking is needed; retire dead `DashboardScreen`/`HealthBreakdownScreen`/pulse components in a cleanup pass; make paths/quick-wins data-driven.
+- **Review date:** Next weekly report.

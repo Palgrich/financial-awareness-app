@@ -1,5 +1,16 @@
-// Design Tokens for Financial Health Dashboard
+// Design Tokens for MoneyGator (Artifiqa)
 // Ready for React Native (Expo) implementation
+
+// Canonical MoneyGator brand palette — single source of truth.
+export const brand = {
+  background: '#0F172A',
+  card: '#1E293B',
+  accent: '#5B4FE8',
+  cyan: '#A5F3FC',
+  green: '#22C55E',
+  red: '#EF4444',
+  orange: '#F59E0B',
+} as const;
 
 export const colors = {
     background: {
@@ -35,8 +46,9 @@ export const colors = {
       mutedLight: '#94A3B8',
     },
     accent: {
-      primary: '#6366F1',
+      primary: '#5B4FE8',
       secondary: '#8B5CF6',
+      cyan: '#A5F3FC',
     },
     glow: {
       awareness: 'rgba(34, 197, 94, 0.15)',

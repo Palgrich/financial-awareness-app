@@ -21,6 +21,8 @@ import {
   mockLessons,
   mockChallenges,
 } from '../data/mock';
+import type { KnowledgeCheck } from '../domain/learn';
+import { scheduleFirstCheck, scheduleRepeatCheck } from '../domain/learn';
 
 const PREF_KEY = '@finance_prefs';
 const DATA_KEY = '@finance_data';
@@ -40,6 +42,7 @@ interface PersistedData {
   dailyGoalMinutes: number;
   todayLearnedMinutes: number;
   todayLearnDate: string | null;
+  knowledgeChecks: Record<string, KnowledgeCheck>;
 }
 
 interface AppState {
@@ -63,6 +66,7 @@ interface AppState {
   dailyGoalMinutes: number;
   todayLearnedMinutes: number;
   todayLearnDate: string | null;
+  knowledgeChecks: Record<string, KnowledgeCheck>;
   // User
   preferences: UserPreferences;
   // UI
@@ -87,6 +91,10 @@ interface AppState {
   updateXP: (amount: number, lessonId: string, durationMin?: number) => void;
   updateStreak: () => void;
   setDailyGoalMinutes: (minutes: number) => void;
+  /** Schedule the first periodic knowledge check for a completed lesson. */
+  scheduleKnowledgeCheck: (lessonId: string) => void;
+  /** Resolve a due knowledge check: reschedule further out if passed, sooner if not. */
+  completeKnowledgeCheck: (lessonId: string, passed: boolean) => void;
   resetDemoData: () => void;
   setAppLoaded: (v: boolean) => void;
   hydrate: () => Promise<void>;
@@ -119,6 +127,7 @@ export const useStore = create<AppState>((set, get) => ({
   dailyGoalMinutes: 5,
   todayLearnedMinutes: 0,
   todayLearnDate: null,
+  knowledgeChecks: {},
   preferences: defaultPrefs,
   appLoaded: false,
 
@@ -236,6 +245,24 @@ export const useStore = create<AppState>((set, get) => ({
     get().persist();
   },
 
+  scheduleKnowledgeCheck: (lessonId) => {
+    set((s) => ({
+      knowledgeChecks: { ...s.knowledgeChecks, [lessonId]: scheduleFirstCheck() },
+    }));
+    get().persist();
+  },
+
+  completeKnowledgeCheck: (lessonId, passed) => {
+    set((s) => {
+      const today = new Date().toISOString().split('T')[0];
+      const next: KnowledgeCheck = passed
+        ? scheduleRepeatCheck()
+        : { dueDate: today, lastReviewedDate: s.knowledgeChecks[lessonId]?.lastReviewedDate ?? null };
+      return { knowledgeChecks: { ...s.knowledgeChecks, [lessonId]: next } };
+    });
+    get().persist();
+  },
+
   resetDemoData: () => {
     set({
       institutions: mockInstitutions,
@@ -248,6 +275,7 @@ export const useStore = create<AppState>((set, get) => ({
       challenges: mockChallenges,
       lessonProgress: {},
       budget: null,
+      knowledgeChecks: {},
     });
     set((s) => ({
       challenges: s.challenges.map((c) => ({ ...c, status: c.id === 'c1' ? 'in_progress' as const : 'todo' as const })),
@@ -283,6 +311,7 @@ export const useStore = create<AppState>((set, get) => ({
         dailyGoalMinutes: data?.dailyGoalMinutes ?? s.dailyGoalMinutes,
         todayLearnedMinutes: data?.todayLearnDate === today ? (data?.todayLearnedMinutes ?? 0) : 0,
         todayLearnDate: data?.todayLearnDate === today ? (data?.todayLearnDate ?? today) : today,
+        knowledgeChecks: data?.knowledgeChecks ?? s.knowledgeChecks,
       }));
       if (data?.challengeStatus) {
         set((s) => ({
@@ -321,6 +350,7 @@ export const useStore = create<AppState>((set, get) => ({
         dailyGoalMinutes: s.dailyGoalMinutes,
         todayLearnedMinutes: s.todayLearnedMinutes,
         todayLearnDate: s.todayLearnDate,
+        knowledgeChecks: s.knowledgeChecks,
       };
       await AsyncStorage.setItem(DATA_KEY, JSON.stringify(data));
     } catch (_) {}

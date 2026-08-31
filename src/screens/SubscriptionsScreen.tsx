@@ -10,12 +10,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useQuery } from '@tanstack/react-query';
 import { AppHeader, AppHeaderDark, FloatingAIButton } from '../components';
 import { useTheme } from '../theme/useTheme';
 import { formatCurrency, formatShortDate } from '../utils/format';
 import type { DashboardStackParamList } from '../navigation/types';
-import type { Subscription } from '../types';
 import { mockSubscriptions } from '../data/mock/subscriptions';
+import { getTransactions } from '../api/endpoints/transactions';
+import { getAccounts } from '../api/endpoints/accounts';
+import { queryKeys } from '../api/queryKeys';
+import { detectSubscriptionList, type SubscriptionListItem } from '../domain/subscriptions';
 
 type Nav = NativeStackNavigationProp<DashboardStackParamList, 'SubscriptionsHome'>;
 
@@ -56,12 +60,6 @@ const accountIdToBank: Record<string, string> = {
   'ally-savings': 'Ally',
 };
 
-function nextBillingDate(lastCharge: string): string {
-  const d = new Date(lastCharge + 'T00:00:00');
-  d.setMonth(d.getMonth() + 1);
-  return d.toISOString().split('T')[0];
-}
-
 function daysUntil(dateStr: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -73,10 +71,27 @@ function getSubscriptionEmoji(merchant: string): string {
   return SUBSCRIPTION_EMOJI[merchant] ?? DEFAULT_EMOJI;
 }
 
-const MONTHLY_INCOME = 1240;
-const TOTAL_MONTHLY = 286.85;
-const ANNUAL = 3442;
-const INCOME_PCT = 23;
+function plus30Days(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().split('T')[0];
+}
+
+/** Fallback list built from the local mock — used ONLY when the live query fails. */
+function mockSubscriptionItems(): SubscriptionListItem[] {
+  return mockSubscriptions
+    .filter((s) => s.status === 'active' || s.status === 'trial')
+    .map((s) => ({
+      id: s.id,
+      merchant: s.merchant,
+      monthlyAmount: s.monthlyCost,
+      accountName: accountIdToBank[s.accountId] ?? 'Other',
+      accountType: 'card',
+      lastChargeDate: s.lastChargeDate,
+      nextChargeDate: plus30Days(s.lastChargeDate),
+      category: s.category,
+    }));
+}
 
 export function SubscriptionsScreen() {
   const insets = useSafeAreaInsets();
@@ -84,22 +99,49 @@ export function SubscriptionsScreen() {
   const { isDark, colors } = useTheme();
   const [sortMode, setSortMode] = useState<SubSortMode>('all');
 
-  const active = useMemo(
-    () => mockSubscriptions.filter((s) => s.status === 'active' || s.status === 'trial'),
-    []
-  );
+  // Live server data (same source as ProgressScreen).
+  const {
+    data: transactions,
+    isError: transactionsError,
+  } = useQuery({
+    queryKey: queryKeys.transactions(),
+    queryFn: getTransactions,
+  });
+  const { data: accounts } = useQuery({
+    queryKey: queryKeys.accounts(),
+    queryFn: getAccounts,
+  });
+
+  // Recurring subscription list from live data. Fall back to the mock ONLY when the
+  // transactions query fails (network error); an empty array is a valid real result.
+  const active: SubscriptionListItem[] = useMemo(() => {
+    if (transactionsError) return mockSubscriptionItems();
+    if (!transactions) return [];
+    return detectSubscriptionList(transactions, accounts ?? []);
+  }, [transactionsError, transactions, accounts]);
+
   const totalMonthly = useMemo(
-    () => active.reduce((sum, s) => sum + s.monthlyCost, 0),
+    () => active.reduce((sum, s) => sum + s.monthlyAmount, 0),
     [active]
   );
   const annualCost = totalMonthly * 12;
-  const loadPercent = Math.round((totalMonthly / MONTHLY_INCOME) * 100);
+
+  // Monthly income from income transactions in the last 30 days (null → hide "% of income").
+  const monthlyIncome = useMemo(() => {
+    if (!transactions) return 0;
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setDate(cutoff.getDate() - 30);
+    return transactions
+      .filter((t) => t.type === 'income' && new Date(t.date + 'T00:00:00') >= cutoff)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  }, [transactions]);
+  const loadPercent = monthlyIncome > 0 ? Math.round((totalMonthly / monthlyIncome) * 100) : null;
 
   const bankBreakdown = useMemo(() => {
     const byBank: Record<string, number> = {};
     active.forEach((s) => {
-      const bank = accountIdToBank[s.accountId] ?? 'Other';
-      byBank[bank] = (byBank[bank] ?? 0) + s.monthlyCost;
+      byBank[s.accountName] = (byBank[s.accountName] ?? 0) + s.monthlyAmount;
     });
     return Object.entries(byBank)
       .map(([bank, amount]) => ({
@@ -114,29 +156,24 @@ export function SubscriptionsScreen() {
   const sortedOrGroupedList = useMemo(() => {
     const list = [...active];
     if (sortMode === 'by_price') {
-      list.sort((a, b) => b.monthlyCost - a.monthlyCost);
+      list.sort((a, b) => b.monthlyAmount - a.monthlyAmount);
       return { type: 'flat' as const, list };
     }
     if (sortMode === 'upcoming') {
-      list.sort((a, b) => {
-        const na = nextBillingDate(a.lastChargeDate);
-        const nb = nextBillingDate(b.lastChargeDate);
-        return na.localeCompare(nb);
-      });
+      list.sort((a, b) => a.nextChargeDate.localeCompare(b.nextChargeDate));
       return { type: 'flat' as const, list };
     }
     if (sortMode === 'by_bank') {
-      const bankToSubs: Record<string, Subscription[]> = {};
+      const bankToSubs: Record<string, SubscriptionListItem[]> = {};
       list.forEach((s) => {
-        const bank = accountIdToBank[s.accountId] ?? 'Other';
-        if (!bankToSubs[bank]) bankToSubs[bank] = [];
-        bankToSubs[bank].push(s);
+        if (!bankToSubs[s.accountName]) bankToSubs[s.accountName] = [];
+        bankToSubs[s.accountName].push(s);
       });
       const groups = Object.entries(bankToSubs)
         .map(([bankName, subs]) => ({ bankName, subs }))
         .sort((a, b) => {
-          const ta = a.subs.reduce((s, x) => s + x.monthlyCost, 0);
-          const tb = b.subs.reduce((s, x) => s + x.monthlyCost, 0);
+          const ta = a.subs.reduce((s, x) => s + x.monthlyAmount, 0);
+          const tb = b.subs.reduce((s, x) => s + x.monthlyAmount, 0);
           return tb - ta;
         });
       return { type: 'grouped' as const, groups };
@@ -187,7 +224,7 @@ export function SubscriptionsScreen() {
             ${totalMonthly.toFixed(2)}
           </Text>
           <Text style={styles.totalSubtitle}>
-            ${Math.round(annualCost).toLocaleString('en-US')}/year · {loadPercent}% of income
+            ${Math.round(annualCost).toLocaleString('en-US')}/year{loadPercent !== null ? ` · ${loadPercent}% of income` : ''}
           </Text>
           <View style={styles.bankPillsRow}>
             {bankBreakdown.map((b) => (
@@ -203,7 +240,7 @@ export function SubscriptionsScreen() {
             <View style={styles.actionRedDot} />
             <View style={styles.actionTextBlock}>
               <Text style={styles.actionMainText}>
-                {active.length} subscriptions · ${Math.round(totalMonthly)}/mo is {loadPercent}% of income — too high
+                {active.length} subscriptions · ${Math.round(totalMonthly)}/mo{loadPercent !== null ? ` is ${loadPercent}% of income — too high` : ''}
               </Text>
               <Text style={styles.actionCta}>Review and cut →</Text>
             </View>
@@ -248,13 +285,18 @@ export function SubscriptionsScreen() {
 
         <View style={[styles.listCard, { backgroundColor: cardBg }, cardBorder]}>
           {displayList.length === 0 ? (
-            <Text style={[styles.empty, { color: textMuted }]}>No subscriptions.</Text>
+            <View style={styles.emptyState}>
+              <Text style={[styles.empty, { color: textPrimary }]}>No recurring charges detected yet</Text>
+              <Text style={[styles.emptySubtitle, { color: textMuted }]}>
+                Connect a bank or wait for more transaction history
+              </Text>
+            </View>
           ) : (
             displayList.map((sub, i) => {
-              const nextDate = nextBillingDate(sub.lastChargeDate);
+              const nextDate = sub.nextChargeDate;
               const days = daysUntil(nextDate);
               const dueSoon = days >= 0 && days <= 3;
-              const bankName = accountIdToBank[sub.accountId] ?? 'Unknown';
+              const bankName = sub.accountName;
               return (
                 <React.Fragment key={sub.id}>
                   {i > 0 ? (
@@ -278,7 +320,7 @@ export function SubscriptionsScreen() {
                     </View>
                     <View style={styles.subRight}>
                       <Text style={[styles.subAmount, { color: textPrimary }]}>
-                        {formatCurrency(sub.monthlyCost)}/mo
+                        {formatCurrency(sub.monthlyAmount)}/mo
                       </Text>
                       <Text
                         style={[
@@ -441,6 +483,16 @@ const styles = StyleSheet.create({
     padding: 24,
     textAlign: 'center',
     fontSize: 14,
+  },
+  emptyState: {
+    alignItems: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: -8,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   subRow: {
     flexDirection: 'row',

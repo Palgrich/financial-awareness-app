@@ -24,6 +24,7 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
   const token = useAuthStore.getState().token;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Bypass-Tunnel-Reminder': 'true',
     ...(init?.headers as Record<string, string>),
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;

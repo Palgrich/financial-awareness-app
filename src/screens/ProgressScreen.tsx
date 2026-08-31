@@ -17,13 +17,13 @@ import { Bell, Menu } from 'lucide-react-native';
 import {
   AppHeader,
   AppHeaderDark,
-  FinancialPulseCard,
-  FinancialWeatherCard,
+  AchievementsCard,
   MetricCard,
   CashControlCard,
   PulseTiles,
   TodaysActionCard,
 } from '../components';
+import { useAchievements } from '../state/useAchievements';
 import { colors } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -31,7 +31,11 @@ import type { DashboardStackParamList } from '../navigation/types';
 import { useAuthStore } from '../state/authStore';
 import { useProgressStore } from '../state/progressStore';
 import type { CashControlStatus } from '../domain/cashControl';
+import { getCurrentBalance } from '../domain/cashControl';
+import { detectRecurringFromTransactions } from '../domain/subscriptions';
 import { getMetrics } from '../api/endpoints/metrics';
+import { getAccounts } from '../api/endpoints/accounts';
+import { getTransactions } from '../api/endpoints/transactions';
 import { queryKeys } from '../api/queryKeys';
 import { getFinancialWeather } from '../utils/financialWeather';
 
@@ -80,8 +84,18 @@ export function ProgressScreen() {
     queryKey: queryKeys.metrics(),
     queryFn: getMetrics,
   });
+  // Live server data (real Plaid values when a sandbox bank is connected).
+  const { data: accountsData } = useQuery({
+    queryKey: queryKeys.accounts(),
+    queryFn: getAccounts,
+  });
+  const { data: transactionsData } = useQuery({
+    queryKey: queryKeys.transactions(),
+    queryFn: getTransactions,
+  });
 
   const { user } = useAuthStore();
+  const { achievements, unlocked, total } = useAchievements();
   const userData = useProgressStore((s) => s.userData);
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const notificationsViewedAt = useProgressStore((s) => s.notificationsViewedAt);
@@ -125,9 +139,10 @@ export function ProgressScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
-      new Promise((r) => setTimeout(r, 1500)),
       loadUserData(),
       queryClient.invalidateQueries({ queryKey: queryKeys.metrics() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions() }),
     ]);
     setRefreshing(false);
   }, [loadUserData, queryClient]);
@@ -191,13 +206,30 @@ export function ProgressScreen() {
   const learnData = undefined as
     | { lessons: Array<{ status: string; title?: string; minutes?: number }> }
     | undefined;
-  const cashBalance = userData?.currentBalance ?? 27520;
+
+  // Cash tile — sum of live checking + savings balances (excludes credit/loan/investment).
+  // Falls back to mock only when the accounts query fails or returns empty.
+  const liveCashBalance = useMemo(() => {
+    if (!accountsData || accountsData.length === 0) return null;
+    return getCurrentBalance(accountsData);
+  }, [accountsData]);
+  const cashBalance = liveCashBalance ?? userData?.currentBalance ?? 27520;
   const cashStatus =
     cashBalance > 5000 ? 'good' : cashBalance > 1000 ? 'moderate' : 'high';
+
   const completedLessons =
     learnData?.lessons.filter((l) => l.status === 'done').length ?? 6;
   const learnStatus =
     completedLessons > 10 ? 'good' : completedLessons > 3 ? 'moderate' : 'high';
+
+  // Subscriptions tile — recurring expenses from live transactions (isRecurring, else
+  // repeated-merchant detection). Falls back to mock only when the query fails or is empty.
+  const liveSubs = useMemo(() => {
+    if (!transactionsData || transactionsData.length === 0) return null;
+    return detectRecurringFromTransactions(transactionsData);
+  }, [transactionsData]);
+  const subMonthly = liveSubs ? liveSubs.monthly : userData?.subscriptionMonthly ?? 287;
+  const subCount = liveSubs ? liveSubs.count : userData?.subscriptionCount ?? 16;
   const subScore = metrics?.subscriptionScore ?? 45;
   const subStatus =
     subScore >= 70 ? 'good' : subScore >= 50 ? 'moderate' : 'high';
@@ -231,7 +263,7 @@ export function ProgressScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#6366F1"
+            tintColor="#5B4FE8"
           />
         }
       >
@@ -249,26 +281,20 @@ export function ProgressScreen() {
           right={headerRight}
         />
         <View style={styles.main}>
-          <FinancialPulseCard
-            healthPercent={healthPercent}
-            status={pulseStatus}
-            description={weather.description}
-            topAction={topAction}
-            totalActions={totalActions}
-            onSeeAll={() => {
-              /* TODO: show all actions modal */
-            }}
-            onActionPress={() => {
-              /* TODO: navigate based on action */
-            }}
+          <AchievementsCard
+            achievements={achievements}
+            unlocked={unlocked}
+            total={total}
+            dark={isDark}
+            onSeeAll={() => navigation.navigate('Achievements')}
           />
 
           <PulseTiles
             cash={{ balance: cashBalance, status: cashStatus }}
             learn={{ completed: completedLessons, status: learnStatus }}
             subscriptions={{
-              monthly: userData?.subscriptionMonthly ?? 287,
-              count: userData?.subscriptionCount ?? 16,
+              monthly: subMonthly,
+              count: subCount,
               status: subStatus,
             }}
             onCashPress={() =>

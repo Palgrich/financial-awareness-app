@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter';
 import { RootNavigator } from './src/navigation';
 import { useStore } from './src/state/store';
 import { useAuthStore } from './src/state/authStore';
+import { useAchievementsStore } from './src/state/achievementsStore';
 import { checkHealth } from './src/api/endpoints/health';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colors } from './src/theme/tokens';
@@ -30,12 +39,20 @@ export default function App() {
   const dark = useStore((s) => s.preferences.darkMode);
   const [apiOk, setApiOkState] = useState<boolean | null>(SHOULD_REQUIRE_API_HEALTH ? null : true);
   const [retryInProgress, setRetryInProgress] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+  });
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       await hydrate();
       await useAuthStore.getState().hydrateAuth();
+      await useAchievementsStore.getState().hydrate();
       if (SHOULD_REQUIRE_API_HEALTH) {
         await runHealthCheck((ok) => {
           if (!cancelled) setApiOkState(ok);
@@ -87,6 +104,11 @@ export default function App() {
       setRetryInProgress(false);
     });
   };
+
+  // Wait for the Inter typeface before rendering so the brand wordmark is exact.
+  if (!fontsLoaded) {
+    return null;
+  }
 
   if (apiOk === false) {
     return (

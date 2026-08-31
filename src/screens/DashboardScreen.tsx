@@ -227,7 +227,7 @@ export function DashboardScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {dark ? (
           <>
-            <AppHeaderDark title="Dashboard" subtitle="Your money at a glance" right={headerRight} />
+            <AppHeaderDark showLogo subtitle="Your money at a glance" right={headerRight} />
             <View style={styles.scopeRow}>
               <ScopeSelector dark={dark} />
             </View>
@@ -252,7 +252,7 @@ export function DashboardScreen() {
           </>
         ) : (
           <>
-            <AppHeader title="Progress" subtitle="Your money clarity" right={headerRight} />
+            <AppHeader showLogo subtitle="Your money clarity" right={headerRight} />
             <View style={styles.figmaMain}>
               <FinancialHealthHeroCard
                 score={clarityResult.score}

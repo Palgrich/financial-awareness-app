@@ -1,4 +1,7 @@
 export { AppHeader, AppHeaderDark } from './AppHeader';
+export { MoneyGatorLogo } from './MoneyGatorLogo';
+export { AchievementBadge } from './AchievementBadge';
+export { AchievementsCard } from './AchievementsCard';
 export { Card } from './Card';
 export { StatTile } from './StatTile';
 export { SectionTitle } from './SectionTitle';

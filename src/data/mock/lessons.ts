@@ -39,6 +39,7 @@ export const mockLessons: Lesson[] = [
     level: 'beginner',
     durationMin: 3,
     summary: 'Common bank fees and how they work.',
+    topic: 'fees',
     sections: [
       { heading: 'Common fees', bullets: ['Monthly maintenance if balance is too low.', 'Overdraft when you spend more than you have.', 'Out-of-network ATM fees.'] },
     ],
@@ -47,6 +48,12 @@ export const mockLessons: Lesson[] = [
       { id: 'q2', question: 'Overdraft fees are charged when:', options: ['You have too much money', 'You spend more than your balance', 'You close the account'], correctIndex: 1 },
       { id: 'q3', question: 'To avoid ATM fees, you should:', options: ['Use any ATM', 'Use your bank\'s ATM or in-network', 'Withdraw large amounts only'], correctIndex: 1 },
     ],
+    practice: {
+      title: 'Scan your recent transactions for fees',
+      description: 'Open your transactions and look for any maintenance, overdraft, or ATM fees to eliminate.',
+      cta: 'Review transactions',
+      action: 'review_transactions',
+    },
   },
   {
     id: 'l5',
@@ -117,10 +124,21 @@ export const mockLessons: Lesson[] = [
     level: 'beginner',
     durationMin: 3,
     summary: 'Track and trim recurring charges.',
+    topic: 'subscriptions',
     sections: [
       { heading: 'Why it matters', bullets: ['Small monthly fees add up over a year.', 'Many people forget about services they rarely use.'] },
       { heading: 'What to do', bullets: ['List all subscriptions (bank and card statements).', 'Cancel what you don\'t use; share or downgrade where possible.'] },
     ],
+    quiz: [
+      { id: 'q10', question: 'Why do subscriptions often go unnoticed?', options: ['They are large one-time charges', 'They are small and recurring', 'Banks hide them'], correctIndex: 1 },
+      { id: 'q11', question: 'A good first step to trim subscriptions is to:', options: ['Cancel your bank account', 'List them from your statements', 'Ignore them'], correctIndex: 1 },
+    ],
+    practice: {
+      title: 'Cancel one unused subscription',
+      description: 'Open your subscriptions and cancel or downgrade at least one service you no longer use.',
+      cta: 'Open subscriptions',
+      action: 'review_subscriptions',
+    },
   },
   {
     id: 'l11',
@@ -128,10 +146,20 @@ export const mockLessons: Lesson[] = [
     level: 'beginner',
     durationMin: 5,
     summary: 'A simple way to plan income and expenses.',
+    topic: 'spending',
     sections: [
       { heading: '50/30/20 (one approach)', bullets: ['50% needs (rent, utilities, groceries).', '30% wants (dining, entertainment).', '20% savings and debt payoff.'] },
       { heading: 'First steps', bullets: ['Track spending for a month.', 'Set one or two goals (e.g. save $X, pay off one card).'] },
     ],
+    quiz: [
+      { id: 'q12', question: 'In the 50/30/20 rule, what does the 20% go to?', options: ['Wants', 'Savings and debt payoff', 'Rent'], correctIndex: 1 },
+    ],
+    practice: {
+      title: 'Set up your monthly budget',
+      description: 'Use the 50/30/20 split as a starting point and set your needs, wants and savings targets.',
+      cta: 'Set my budget',
+      action: 'set_budget',
+    },
   },
   {
     id: 'l12',
@@ -139,9 +167,19 @@ export const mockLessons: Lesson[] = [
     level: 'beginner',
     durationMin: 3,
     summary: 'How to define and reach a savings target.',
+    topic: 'savings',
     sections: [
       { heading: 'Good goals', bullets: ['Specific (e.g. $2,000 emergency fund).', 'Realistic for your income.', 'With a timeline.'] },
       { heading: 'Staying on track', bullets: ['Automate a transfer to savings each payday.', 'Review progress monthly.'] },
     ],
+    quiz: [
+      { id: 'q13', question: 'A good savings goal is:', options: ['Vague and open-ended', 'Specific, realistic, with a timeline', 'As large as possible'], correctIndex: 1 },
+    ],
+    practice: {
+      title: 'Set your savings goal',
+      description: 'Open your profile and set (or update) a specific savings target to work toward.',
+      cta: 'Set savings goal',
+      action: 'add_savings_goal',
+    },
   },
 ];

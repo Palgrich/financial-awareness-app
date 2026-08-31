@@ -10,6 +10,7 @@ import { MenuScreen } from '../screens/MenuScreen';
 import { QuestSubscriptionCleanseScreen } from '../screens/QuestSubscriptionCleanseScreen';
 import { QuestCelebrationScreen } from '../screens/QuestCelebrationScreen';
 import { QuickWinScreen } from '../screens/QuickWinScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
 
 const Stack = createNativeStackNavigator<LearnStackParamList>();
 
@@ -29,6 +30,7 @@ export function LearnStack() {
       />
       <Stack.Screen name="QuestCelebration" component={QuestCelebrationScreen} />
       <Stack.Screen name="QuickWin" component={QuickWinScreen} />
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
     </Stack.Navigator>
   );
 }

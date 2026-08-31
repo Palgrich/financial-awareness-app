@@ -1,21 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { MoneyGatorLogo } from './MoneyGatorLogo';
 
 interface AppHeaderProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   /** Optional greeting line above title (e.g. "Good morning 👋") in gray #888 */
   greeting?: string;
+  /** Render the "🐊 MoneyGator" brand wordmark instead of the title text. */
+  showLogo?: boolean;
   right?: React.ReactNode;
   style?: ViewStyle;
 }
 
-export function AppHeader({ title, subtitle, greeting, right, style }: AppHeaderProps) {
+export function AppHeader({ title, subtitle, greeting, showLogo, right, style }: AppHeaderProps) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.left}>
         {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
-        <Text style={styles.title}>{title}</Text>
+        {showLogo ? (
+          <MoneyGatorLogo color="#0f172a" />
+        ) : title ? (
+          <Text style={styles.title}>{title}</Text>
+        ) : null}
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {right ? <View style={styles.right}>{right}</View> : null}
@@ -51,11 +58,15 @@ const styles = StyleSheet.create({
   },
 });
 
-export function AppHeaderDark({ title, subtitle, right, style }: AppHeaderProps) {
+export function AppHeaderDark({ title, subtitle, showLogo, right, style }: AppHeaderProps) {
   return (
     <View style={[stylesDark.container, style]}>
       <View style={stylesDark.left}>
-        <Text style={stylesDark.title}>{title}</Text>
+        {showLogo ? (
+          <MoneyGatorLogo color="#FFFFFF" />
+        ) : title ? (
+          <Text style={stylesDark.title}>{title}</Text>
+        ) : null}
         {subtitle ? <Text style={stylesDark.subtitle}>{subtitle}</Text> : null}
       </View>
       {right ? <View style={stylesDark.right}>{right}</View> : null}

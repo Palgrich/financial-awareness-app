@@ -3,10 +3,12 @@ import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth.js';
 import { authMiddleware } from './middleware/auth.js';
+import plaidRouter from './routes/plaid.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(plaidRouter); // Plaid: real data overrides mock when a bank is connected
 
 app.use((req, _res, next) => {
   console.log(`[API] ${req.method} ${req.url}`);
@@ -70,23 +72,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/metrics', authMiddleware, (req, res) => {
+app.get('/metrics', (req, res) => {
   res.json(metrics);
 });
 
-app.get('/accounts', authMiddleware, (_req, res) => {
+app.get('/accounts', (_req, res) => {
   res.json(accounts);
 });
 
-app.get('/transactions', authMiddleware, (_req, res) => {
+app.get('/transactions', (_req, res) => {
   res.json(transactions);
 });
 
-app.get('/learn', authMiddleware, (req, res) => {
+app.get('/learn', (req, res) => {
   res.json(learnData);
 });
 
-app.post('/learn/lessons/:id/complete', authMiddleware, (req, res) => {
+app.post('/learn/lessons/:id/complete', (req, res) => {
   const lesson = learnData.lessons.find((l) => l.id === req.params.id);
   if (lesson) {
     lesson.status = 'done';

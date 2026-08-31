@@ -54,10 +54,11 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - Evidence: `src/screens/ProfileScreen.tsx`
 
 8. [ ] **Auth hardening v1 (rate limit + env guard for JWT secret)**
-   - Status: In Progress (started 2026-03-09)
+   - Status: **At-Risk** (In Progress started 2026-03-09; >24h with no new implementation evidence)
    - Owner: Dev
-   - ETA: 2026-03-16
+   - ETA: **2026-03-19** (re-baselined after 2026-03-15 13:00 PT checkpoint miss)
    - Evidence target: `server/routes/auth.js`, `server/middleware/auth.js`, `server/README.md`
+   - Recovery action (2026-03-22 21:52 PT refresh): still no implementation commits beyond `d5901eb`; P0-8 remains >24h without evidence and stays **At-Risk**. Revalidated no new repo evidence after the 2026-03-16 10:00 PT Review-handoff miss and since the 2026-03-22 10:52 PT sync, so recovery remains re-baselined to an explicit founder decision gate. Founder slip gate remains **triggered** (+3 days vs 2026-03-16). Active recovery sequence now: (1) Founder selects recovery path (timebox rescue vs de-scope/re-sequence), (2) first implementation proof commit required within 4 hours of decision, (3) move P0-8 to Review within 24 hours of first proof commit or trigger re-plan escalation.
    - Ready Card: `docs/product/ready-cards.md#p0-8--auth-hardening-v1-rate-limit--jwt-env-guard`
 
 9. [ ] **README and product-doc synchronization with actual architecture**
@@ -66,8 +67,10 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
    - Evidence mismatch: `README.md` says frontend-only, repo includes backend/auth
 
 10. [ ] **Beta readiness checklist + smoke CI (typecheck/lint/basic API smoke)**
+   - Status: Ready
    - Owner: TPM + Dev
    - ETA: 2026-03-17
+   - Ready Card: `docs/product/ready-cards.md#p0-10--beta-readiness-checklist--smoke-ci`
 
 ---
 
@@ -101,8 +104,8 @@ Source audit: `docs/reports/sprint-audit-2026-03-07.md`
 
 ## Board status snapshot (Sprint #1)
 - **Done:** P0-1, P0-2, P0-3, P0-4, P0-5, P0-6, P0-7
-- **In Progress:** P0-8
-- **At-Risk:** None
+- **In Progress:** None
+- **At-Risk:** P0-8
 - **Ready:** P0-9, P0-10
 - **Blocked:** External beta (hard gate: P0-8 + P0-10)
 

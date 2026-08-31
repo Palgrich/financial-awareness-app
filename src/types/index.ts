@@ -55,6 +55,34 @@ export interface QuizQuestion {
   whyCorrect?: string;
 }
 
+/** Topic used to pick the personalized daily lesson from user data signals. */
+export type LessonTopic =
+  | 'credit'
+  | 'subscriptions'
+  | 'spending'
+  | 'savings'
+  | 'fees'
+  | 'general';
+
+/** Real financial action the user is expected to take after theory + quiz. */
+export type PracticeActionType =
+  | 'review_subscriptions'
+  | 'set_budget'
+  | 'review_transactions'
+  | 'add_savings_goal'
+  | 'review_debts';
+
+export interface LessonPractice {
+  /** Short imperative title, e.g. "Cancel one unused subscription". */
+  title: string;
+  /** One-line explanation of the action and why it matters. */
+  description: string;
+  /** Button label, e.g. "Open subscriptions". */
+  cta: string;
+  /** Which in-app destination/action this practice maps to. */
+  action: PracticeActionType;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -63,6 +91,10 @@ export interface Lesson {
   summary: string;
   sections: LessonSection[];
   quiz?: QuizQuestion[];
+  /** Topic used for data-personalized daily lesson selection. */
+  topic?: LessonTopic;
+  /** Practice step shown after the quiz (a real financial action). */
+  practice?: LessonPractice;
 }
 
 export type ChallengeStatus = 'todo' | 'in_progress' | 'done';

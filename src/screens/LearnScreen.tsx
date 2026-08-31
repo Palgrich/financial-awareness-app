@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -17,19 +17,30 @@ import { AppHeader, AppHeaderDark } from '../components';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LearnStackParamList } from '../navigation/types';
 import { useAuthStore } from '../state/authStore';
+import { useStore } from '../state/store';
+import { useProgressStore } from '../state/progressStore';
+import { useAchievements } from '../state/useAchievements';
 import { getStreak } from '../data/learnQuestStorage';
+import {
+  selectDailyLesson,
+  dailyLessonReason,
+  topicEmoji,
+  getDueKnowledgeChecks,
+  type DailyLessonSignals,
+} from '../domain/learn';
 import { useTheme } from '../theme/useTheme';
 
 type Nav = NativeStackNavigationProp<LearnStackParamList, 'LearnHome'>;
 
 const GRADIENT_COLORS = ['#1E1B4B', '#3730A3', '#5B4FE8'] as const;
 
-const todayLesson = {
-  emoji: '💳',
-  title: 'Why your credit card is costing you more than you think',
-  description: 'Personalized for you — Chase Sapphire payment due in 2 days.',
-  minutes: 2,
-  category: 'Credit',
+const TOPIC_LABEL: Record<string, string> = {
+  credit: 'Credit',
+  subscriptions: 'Subscriptions',
+  spending: 'Spending',
+  savings: 'Savings',
+  fees: 'Fees',
+  general: 'Basics',
 };
 
 const learningPaths = [
@@ -55,6 +66,35 @@ export function LearnScreen() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const [streak, setStreak] = useState(3);
   const [refreshing, setRefreshing] = useState(false);
+
+  const lessons = useStore((s) => s.lessons);
+  const lessonProgress = useStore((s) => s.lessonProgress);
+  const knowledgeChecks = useStore((s) => s.knowledgeChecks);
+  const userData = useProgressStore((s) => s.userData);
+  const { unlocked: achievementsUnlocked, total: achievementsTotal } = useAchievements();
+
+  const signals: DailyLessonSignals = useMemo(
+    () => ({
+      creditDueSoon: userData.creditCardStatus !== 'Strong' || userData.daysUntilDue <= 3,
+      highSubscriptionLoad: userData.subscriptionStatus === 'High',
+      highSpending: userData.expensesThisMonth > userData.expensesLastMonth,
+      lowSavings: userData.savedTotal < 500,
+    }),
+    [userData]
+  );
+
+  const completedIds = useMemo(
+    () => new Set(Object.entries(lessonProgress).filter(([, p]) => p === 'completed').map(([id]) => id)),
+    [lessonProgress]
+  );
+  const dailyLesson = useMemo(
+    () => selectDailyLesson(lessons, signals, completedIds),
+    [lessons, signals, completedIds]
+  );
+  const dueChecks = useMemo(
+    () => getDueKnowledgeChecks(knowledgeChecks, lessons),
+    [knowledgeChecks, lessons]
+  );
 
   useEffect(() => {
     getStreak().then((s) => setStreak(s > 0 ? s : 3));
@@ -112,7 +152,7 @@ export function LearnScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#6366F1"
+            tintColor="#5B4FE8"
           />
         }
       >
@@ -134,22 +174,67 @@ export function LearnScreen() {
                 <Text style={styles.lessonStreakText}>🔥 Day {streak}</Text>
               </View>
             </View>
-            <Text style={styles.lessonEmoji}>{todayLesson.emoji}</Text>
-            <Text style={styles.lessonTitle}>{todayLesson.title}</Text>
-            <Text style={styles.lessonDescription}>{todayLesson.description}</Text>
+            <Text style={styles.lessonEmoji}>{topicEmoji(dailyLesson?.topic)}</Text>
+            <Text style={styles.lessonTitle}>{dailyLesson?.title ?? 'Your daily money lesson'}</Text>
+            <Text style={styles.lessonDescription}>
+              {dailyLesson ? dailyLessonReason(dailyLesson, signals) : 'Personalized for you.'}
+            </Text>
             <View style={styles.lessonFooter}>
               <Text style={styles.lessonMeta}>
-                {todayLesson.minutes} min · {todayLesson.category}
+                {dailyLesson?.durationMin ?? 2} min · {TOPIC_LABEL[dailyLesson?.topic ?? 'general']}
               </Text>
               <TouchableOpacity
                 style={styles.startButton}
-                onPress={() => navigation.navigate('LessonDetail', { lessonId: 'today' })}
+                onPress={() => dailyLesson && navigation.navigate('LessonDetail', { lessonId: dailyLesson.id })}
                 activeOpacity={0.8}
+                disabled={!dailyLesson}
               >
                 <Text style={styles.startButtonText}>Start →</Text>
               </TouchableOpacity>
             </View>
           </LinearGradient>
+
+          {/* Knowledge checks due (spaced repetition) */}
+          {dueChecks.length > 0 ? (
+            <View style={styles.checksSection}>
+              <Text style={[styles.sectionTitleStandalone, { color: textPrimary, marginTop: 0 }]}>
+                Knowledge check{dueChecks.length > 1 ? 's' : ''} due
+              </Text>
+              {dueChecks.map((l) => (
+                <TouchableOpacity
+                  key={l.id}
+                  style={[styles.checkCard, { backgroundColor: cardBg }, cardBorder]}
+                  activeOpacity={0.8}
+                  onPress={() => navigation.navigate('LessonDetail', { lessonId: l.id, mode: 'review' })}
+                >
+                  <Text style={styles.checkEmoji}>🔁</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.checkTitle, { color: textPrimary }]} numberOfLines={1}>
+                      {l.title}
+                    </Text>
+                    <Text style={[styles.checkSub, { color: textMuted }]}>Quick review · keep it fresh</Text>
+                  </View>
+                  <Text style={styles.checkArrow}>→</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+
+          {/* Achievements entry */}
+          <TouchableOpacity
+            style={[styles.achievementsRow, { backgroundColor: cardBg }, cardBorder]}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Achievements')}
+          >
+            <Text style={styles.checkEmoji}>🏅</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.checkTitle, { color: textPrimary }]}>Achievements</Text>
+              <Text style={[styles.checkSub, { color: textMuted }]}>
+                {achievementsUnlocked} of {achievementsTotal} unlocked
+              </Text>
+            </View>
+            <Text style={styles.checkArrow}>→</Text>
+          </TouchableOpacity>
 
           {/* ZONE 2 — Your path */}
           <View style={styles.sectionHeader}>
@@ -446,4 +531,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#5B4FE8',
   },
+  checksSection: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  checkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 8,
+  },
+  achievementsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  checkEmoji: { fontSize: 22 },
+  checkTitle: { fontSize: 14, fontWeight: '600' },
+  checkSub: { fontSize: 12, marginTop: 2 },
+  checkArrow: { fontSize: 16, fontWeight: '700', color: '#5B4FE8' },
 });

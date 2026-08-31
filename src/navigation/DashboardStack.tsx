@@ -19,6 +19,7 @@ import { HealthBreakdownScreen } from '../screens/HealthBreakdownScreen';
 import { PaycheckBreakdownScreen } from '../screens/PaycheckBreakdownScreen';
 import { ProgressSubscriptionListScreen } from '../screens/ProgressSubscriptionListScreen';
 import { CreditCardDetailsScreen } from '../screens/CreditCardDetailsScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
 
 const Stack = createNativeStackNavigator<DashboardStackParamList>();
 
@@ -43,6 +44,7 @@ export function DashboardStack() {
       <Stack.Screen name="PaycheckBreakdown" component={PaycheckBreakdownScreen} />
       <Stack.Screen name="ProgressSubscriptionList" component={ProgressSubscriptionListScreen} />
       <Stack.Screen name="CreditCardDetails" component={CreditCardDetailsScreen} />
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
     </Stack.Navigator>
   );
 }

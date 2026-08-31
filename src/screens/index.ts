@@ -1,5 +1,6 @@
 export { DashboardScreen } from './DashboardScreen';
 export { ProgressScreen } from './ProgressScreen';
+export { AchievementsScreen } from './AchievementsScreen';
 export { TransactionsScreen } from './TransactionsScreen';
 export { BudgetScreen } from './BudgetScreen';
 export { DebtsScreen } from './DebtsScreen';

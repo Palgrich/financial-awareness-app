@@ -1,0 +1,70 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="gatorBody" x1="180" y1="420" x2="820" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+    <radialGradient id="coinFace" cx="0.35" cy="0.3" r="0.85">
+      <stop stop-color="#FCD34D"/>
+      <stop offset="0.55" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </radialGradient>
+    <linearGradient id="accentRing" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B4FE8"/>
+      <stop offset="1" stop-color="#A5F3FC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark rounded card -->
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#cardBg)"/>
+  <rect x="16" y="16" width="992" height="992" rx="212" fill="none" stroke="url(#accentRing)" stroke-opacity="0.35" stroke-width="8"/>
+
+  <!-- Alligator -->
+  <g>
+    <!-- Tail -->
+    <path d="M232 604 C 150 596, 150 668, 236 664 C 300 660, 320 632, 300 612 Z" fill="url(#gatorBody)"/>
+    <!-- Back ridges -->
+    <path d="M356 520 l40 -52 l40 52 Z" fill="#16A34A"/>
+    <path d="M436 512 l44 -60 l44 60 Z" fill="#16A34A"/>
+    <path d="M524 512 l44 -60 l44 60 Z" fill="#16A34A"/>
+    <!-- Body -->
+    <path d="M300 612
+             C 300 540, 380 508, 480 508
+             C 600 508, 690 520, 742 560
+             C 792 598, 800 640, 770 664
+             C 700 664, 300 664, 300 612 Z" fill="url(#gatorBody)"/>
+    <!-- Head / snout -->
+    <path d="M742 560
+             C 812 548, 882 560, 900 596
+             C 912 620, 890 648, 840 652
+             C 792 656, 748 640, 736 612
+             C 730 592, 730 572, 742 560 Z" fill="url(#gatorBody)"/>
+    <!-- Snout top nostril -->
+    <circle cx="872" cy="596" r="10" fill="#0F172A"/>
+    <!-- Mouth line -->
+    <path d="M748 628 C 800 648, 856 648, 892 626" stroke="#0F172A" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <!-- Teeth -->
+    <path d="M772 636 l10 16 l10 -14 Z" fill="#F8FAFC"/>
+    <path d="M812 642 l10 16 l10 -14 Z" fill="#F8FAFC"/>
+    <path d="M852 640 l10 16 l10 -14 Z" fill="#F8FAFC"/>
+    <!-- Eye -->
+    <circle cx="770" cy="556" r="26" fill="#F8FAFC"/>
+    <circle cx="778" cy="558" r="12" fill="#0F172A"/>
+    <!-- Legs -->
+    <rect x="392" y="648" width="34" height="70" rx="16" fill="#15803D"/>
+    <rect x="512" y="648" width="34" height="70" rx="16" fill="#15803D"/>
+    <rect x="632" y="648" width="34" height="70" rx="16" fill="#15803D"/>
+  </g>
+
+  <!-- Gold coin with $ -->
+  <g transform="translate(430 372)">
+    <circle cx="0" cy="0" r="132" fill="url(#coinFace)"/>
+    <circle cx="0" cy="0" r="132" fill="none" stroke="#FDE68A" stroke-width="10" stroke-opacity="0.7"/>
+    <circle cx="0" cy="0" r="104" fill="none" stroke="#B45309" stroke-width="6" stroke-opacity="0.5"/>
+    <text x="0" y="46" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="150" font-weight="700" fill="#FFFFFF">$</text>
+  </g>
+</svg>

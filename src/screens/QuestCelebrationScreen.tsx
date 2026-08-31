@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   streakEmoji: { fontSize: 18 },
   streakText: { fontSize: 16, fontWeight: '600', color: '#0F172A' },
   backBtn: {
-    backgroundColor: '#6366F1',
+    backgroundColor: '#5B4FE8',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
